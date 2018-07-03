@@ -1,4 +1,4 @@
-#-------Clear data and load packages-----------------------
+#---Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()
 source('https://bioconductor.org/biocLite.R')
@@ -15,42 +15,47 @@ library("pamr")
 biocLite("MCL")
 library("MCL")
 
-#---------Set working directory-----------------------------
+#---Set working directory-----------------------------
 setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_GAtextfiles/")
 directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_GAtextfiles/"
 
-#-----Set up DESeq2 data, based on names of HTSeq counts in working directory-----
+#---Set up DESeq2 data, based on names of HTSeq counts in working directory-----
 sampleFiles <- dir(pattern = 'sorted')
-#print(sampleFiles)
+print(sampleFiles)
 #sample group set up
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
-#print(ConditionMatch)
+print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
-#print(sampleConditions)
+print(sampleConditions)
 sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, condition = sampleConditions)
-#print(sampleTable)
+print(sampleTable)
 
-#-------Calculate DESeq2 from HTSeq count tables-------------
+#---Calculate DESeq2 from HTSeq count tables-------------
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = ~ condition)
-print(ddsHTSeq)
+#print(ddsHTSeq)
 
-#Filter out genes with zero counts
-ddsHTSeqFiltered <- ddsHTSeq [ rowSums(counts(ddsHTSeq)) >= 0, ]
+#-------Filter out genes with zero counts--------------------------
+ddsHTSeqFiltered <- ddsHTSeq [ rowSums(counts(ddsHTSeq)) > 0, ]
 ddsHTSeqFiltered <- DESeq(ddsHTSeqFiltered)
-print(ddsHTSeqFiltered)
+#print(ddsHTSeqFiltered)
 
-#-------for Data Transformations and Visualizations-----------------------------------------
-#Generate log2 normalized count matrix
+#---Visualizations of Data Transformations--------------------------------
+#Generate log2 normalized count matrix and variance stabilizing matrix
 rld <- rlog(ddsHTSeqFiltered, blind = FALSE)
 vsd <- varianceStabilizingTransformation(ddsHTSeqFiltered, blind = FALSE)
+class(vsd)
+head(colData(vsd),3)
 logTransCounts <- assay(rld)
 head(logTransCounts)
 
+#---Comparing heatmaps of the three visualization methods------------------
 library("RColorBrewer")
 install.packages("gplots")
 library("gplots")
+
 select <- order(rowMeans(counts(ddsHTSeqFiltered,normalized=TRUE)),decreasing=TRUE)[1:30]
 hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100)
+
 heatmap.2(counts(ddsHTSeqFiltered,normalized=TRUE)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10,6))
@@ -60,35 +65,50 @@ heatmap.2(assay(rld)[select,], col = hmcol,
 heatmap.2(assay(vsd)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10, 6))
-distsRL <- dist(t(assay(rld)))
-mat <- as.matrix(distsRL)
-rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), paste(condition, type, sep = " : "))
+
+#---Comparing samples to each other for correlation patterning-----------
 heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
-#print(plotPCA(rld, intgroup=c("condition", "type")))
 dev.off()
 
-#--------Singling out specific genes--------------------------
-#logTransCounts[grep("Pitx2", rownames(logTransCounts)), ]
-#logTransCounts[grep("Foxo3", rownames(logTransCounts)), ]
-#logTransCounts[grep("Arf1", rownames(logTransCounts)), ]
+#---The SHORT way to generate PCA plots---------
+plotPCA(vsd, "condition")
+plotPCA(rld, "condition")
+
+#---MDS plot using Euclidean distances----
+distsRL <- dist(t(assay(vsd)))
+DistMatrix <- as.matrix(distsRL)
+mdsData <- data.frame(cmdscale(DistMatrix))
+mds <- cbind(mdsData, as.data.frame(colData(vsd)))
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
+
+#---Poisson Distance Plot------------
+install.packages("PoiClaClu")
+library("PoiClaClu")
+poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
+samplePoisDistMatrix <- as.matrix( poisd$dd )
+mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
+mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
+ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3)
+
+#---Singling out specific genes based on log counts---------------------
+logTransCounts[grep("Pitx2", rownames(logTransCounts)), ]
+logTransCounts[grep("Foxo3", rownames(logTransCounts)), ]
+logTransCounts[grep("Arf1", rownames(logTransCounts)), ]
 #rld <- rlog (ddsHTSeqFiltered, blind = F, logTransCounts[grep("Pitx2", rownames(logTransCounts)), ])
 #logTransCounts[grep("Foxo3", logTransCounts), ]
 #mcols(object)$dispFit
 
-#---Calculate Principle component analysis based on log2 normalized count matrix---
+#---The LONG way to calculate Principle component analysis based on log2 normalized count matrix---
 OGPCAN <-prcomp(logTransCounts, center = T, scale = F, tol = 0)
-#print(OGPCAN)
+print(OGPCAN)
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
-#OGPCAN_matrix <- OGPCAN_matrix[, 1:7]
+OGPCAN_matrix <- OGPCAN_matrix[, 1:7]
+print(OGPCAN_matrix)
+#PCA plot replicates set up
+OGPCAN_matrix$Condition <- c(rep("TF", 3), rep("TM", 4)) 
+#rep("m1", 1), rep("m2", 1), rep("m3", 1))
 #print(OGPCAN_matrix)
-
-#---PCA plot replicates set up---
-# TO DO: This line is broken/needs fixing
-OGPCAN_matrix$Condition <- c(rep("GF", 2), rep("GM", 3)) 
-#rep("m1", 1), rep("m2", 1), rep("m3", 1)) 
-#print(OGPCAN_matrix)
-
-#---Plot PCA---
+#Plot PCA
 ggplot(OGPCAN_matrix, aes(PC2, PC1, color = Condition)) +
   geom_point(size = 3) +
   theme(axis.text.x = element_text(size = 14, color = "black"),
@@ -102,76 +122,82 @@ ggplot(OGPCAN_matrix, aes(PC2, PC1, color = Condition)) +
   scale_color_discrete(name = "Sample")
 #print(ddsHTSeqFiltered)
 
-#--------Calculate differentially expressed genes from DESeq2---------------------
-# res.TA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "TF"))
-res.GA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "GM", "GF"))
-#res.SOL_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "MCK", "FLZ"))
-#res.TA_GA_W <- results(ddsHTSeqFiltered, contrast = c("condition", "TF", "GF"))
-#res.TA_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "GM"))
-#res.SOL_GA_W <- results(ddsHTSeqFiltered, contrast = c("condition", "SF", "GF"))
-#res.SOL_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "SM", "GM"))
+#---Calculate differentially expressed genes from DESeq2---------------------
+res.TA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "TF"))
+mcols(res.TA_W_M, use.names=TRUE)
+summary(res.TA_W_M)
 
-#summary(res.TA_W_M)
-summary(res.GA_W_M)
-#summary(res.SOL_W_M)
-#summary(res.TA_GA_W)
-#summary(res.TA_GA_M)
-#summary(res.SOL_GA_W)
-#summary(res.SOL_GA_M)
+#Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
+res.TA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
+table(res.TA_W_M.05$padj < 0.05)
 
-#---------MA plot from res--------------------------------------------------------
-plotMA.GA_W_M <- plotMA(res.GA_W_M, ylim=c(-2,2))
-mcols(res.GA_W_M, use.names = TRUE)
+#Calculate differentially expressed genes from DESeq2 object based on log fold change equal to 0.5 (2^0.5)
+res.TA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
+table(res.TA_W_MLFC1$padj < 0.1)
 
-#plotMA.GA_W_M <- plotMA(res.GA_W_M, ylim=c(-2,2))
-#plotMA.SOL_W_M <- plotMA(res.SOL_W_M, ylim=c(-2,2))
-#plotMA.TA_GA_W <- plotMA(res.TA_GA_W, ylim=c(-3,3))
-#plotMA.TA_GA_M <- plotMA(res.TA_GA_M, ylim=c(-3,3))
-#plotMA.SOL_GA_W <- plotMA(res.SOL_GA_W, ylim=c(-3,3))
-#plotMA.SOL_GA_M <- plotMA(res.SOL_GA_M, ylim=c(-3,3))
+#---MA plot from res---------------------------------------
+plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
+mcols(res.TA_W_M, use.names = TRUE)
 
-
-#---------filter DE genes---------------------------------------------------------
+#---filter DE genes using subsets----------------------------------
 #Set FDR threshold of p <= 0.05
-res.GA_W_M_filtered <- as.data.frame(as.matrix(subset(res.GA_W_M, pvalue < 0.05)))
-res.GA_W_M_filtered <- as.data.frame(as.matrix(subset(res.GA_W_M, padj < 0.05)))
-res.GA_W_M_filtered$absFC <- abs(res.GA_W_M_filtered$log2FoldChange)
+res.TA_W_M_filtered <- as.data.frame(as.matrix(subset(res.TA_W_M, pvalue <= 0.05)))
+#head(res.TA_W_M_filtered)
+#dim(res.TA_W_M_filtered)
 
-#print(res.GA_W_M_filtered)
-#dim(res.GA_W_M_filtered)
+#Set adjusted p-value to 0.05
+res.TA_W_M_filtered <- as.data.frame(as.matrix(subset(res.TA_W_M, padj <= 0.05)))
+#head(res.TA_W_M_filtered)
+#dim(res.TA_W_M_filtered)
 
-write.table(res.GA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.GA_W_M_filtered_20180626.txt", sep ="\t")
-#write.csv(as.data.frame(res.GA_W_M_filtered), file = "")
+#Set log fold-change and adjusted p-value
+res.TA_W_M_filtered$absFC <- abs(res.TA_W_M_filtered$log2FoldChange)
+res.TA_W_M_filtered2 <- subset(res.TA_W_M_filtered, absFC > 0.5)
+res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, padj < 0.05)
+#head(res.TA_W_M_filtered)
+#dim(res.TA_W_M_filtered)
+#head(res.TA_W_M_filtered2)
+#dim(res.TA_W_M_filtered2)
+#head(res.TA_W_M_filtered3)
+#dim(res.TA_W_M_filtered3)
 
-#----for Heatmap plots of 200 gene expressions and significant Log2fold changes-----
-#nrow(res.GA_W_M_filtered)
-#ncol(res.GA_W_M_filtered) 
-#head(res.GA_W_M_filtered)
+#---Print out the filtered data as a text file----------------------------
+write.table(res.TA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_filtered_20180628.txt", sep ="\t")
+#write.csv(as.data.frame(res.TA_W_M_filtered), file = "")
 
+#---Heatmap of the 30 most significant fold-change genes--------------
+install.packages("pheatmap")
+library("pheatmap")
+Mat <- assay(vsd)[ head(order(res.TA_W_M$padj),30), ]
+Mat <- Mat - rowMeans(Mat)
+df <- as.data.frame(colData(vsd)[,c("condition")])
+pheatmap(Mat)
+
+#---Heatmap plot of 200 gene expressions and significant Log2fold changes-----
 var_genes <- apply(logTransCounts, 1, var)
-#head(var_genes)
 select_var <- names(sort(var_genes, decreasing=TRUE))[1:200]
-#head(select_var)
 highly_variable_lcpm <- logTransCounts[select_var,]
+Heatmap(highly_variable_lcpm)
+#nrow(res.TA_W_M_filtered)
+#ncol(res.TA_W_M_filtered) 
+#head(res.TA_W_M_filtered)
+#head(var_genes)
+#head(select_var)
 #dim(highly_variable_lcpm)
 #head(highly_variable_lcpm)
-Heatmap(highly_variable_lcpm)
 
+#---Heatmap of most significant genes from filtered-out dataset of the overall fold-change between the mutant and wildtype groups---
+TA_W_M.heatmap.matrix <- as.matrix(res.TA_W_M_filtered[ ,c(2)])
+Heatmap(TA_W_M.heatmap.matrix)
+Heatmap(TA_W_M.heatmap.matrix, cluster_columns = F) #Formats based on alphabetical order
+#head(res.TA_W_M_filtered)
+#class(res.TA_W_M_filtered)
+#class(TA_W_M.heatmap.matrix)
+#print(TA_W_M.heatmap.matrix)
+#TA_W_M.heatmap.matrix <- t(TA_W_M.heatmap.matrix) # flip rows and columns around
 
-# make the matrix for heatmap of most significant, filtered-out, genes
-# NOTE: This is comparing the overall fold-change between the mutant and wildtype groups
-#head(res.GA_W_M_filtered)
-GA_W_M.heatmap.matrix <- as.matrix(res.GA_W_M_filtered[ ,c(2)])
-#class(res.GA_W_M_filtered)
-#class(GA_W_M.heatmap.matrix)
-#print(GA_W_M.heatmap.matrix)
-#GA_W_M.heatmap.matrix <- t(GA_W_M.heatmap.matrix) # flip rows and columns around
-Heatmap(GA_W_M.heatmap.matrix)
-Heatmap(GA_W_M.heatmap.matrix, cluster_columns = F) #Formats based on alphabetical order
-
-# make a matrix and heatmap of the most significant and filtered out genes for each individual
-# NOTE: I believe I am comparing the genes twice. I do not trust this code completely.
-var_genes <- apply(res.GA_W_M_filtered, 1, var)
+#---Heatmap of the most significant genes for each individual from filtered-out dataset-----
+var_genes <- apply(res.TA_W_M_filtered, 1, var)
 head(var_genes)
 select_var <- names(sort(var_genes))
 head(select_var)
@@ -179,6 +205,10 @@ highly_variable_lcpm <- logTransCounts[select_var,]
 dim(highly_variable_lcpm)
 head(highly_variable_lcpm)
 Heatmap(highly_variable_lcpm)
+
+#---Clear data and load packages-----------------------
+rm(list = ls())
+dev.off()
 
 #======================================================
 #============== Arun's Code ===========================
