@@ -105,7 +105,7 @@ OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 OGPCAN_matrix <- OGPCAN_matrix[, 1:7]
 print(OGPCAN_matrix)
 #PCA plot replicates set up
-OGPCAN_matrix$Condition <- c(rep("TF", 3), rep("TM", 4)) 
+OGPCAN_matrix$Condition <- c(rep("GF", 2), rep("GM", 3)) 
 #rep("m1", 1), rep("m2", 1), rep("m3", 1))
 #print(OGPCAN_matrix)
 #Plot PCA
@@ -123,37 +123,37 @@ ggplot(OGPCAN_matrix, aes(PC2, PC1, color = Condition)) +
 #print(ddsHTSeqFiltered)
 
 #---Calculate differentially expressed genes from DESeq2---------------------
-res.TA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "TF"))
-mcols(res.TA_W_M, use.names=TRUE)
-summary(res.TA_W_M)
+res.GA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "GM", "GF"))
+mcols(res.GA_W_M, use.names=TRUE)
+summary(res.GA_W_M)
 
 #Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
-res.TA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-table(res.TA_W_M.05$padj < 0.05)
+res.GA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
+table(res.GA_W_M.05$padj < 0.05)
 
 #Calculate differentially expressed genes from DESeq2 object based on log fold change equal to 0.5 (2^0.5)
-res.TA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-table(res.TA_W_MLFC1$padj < 0.1)
+res.GA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
+table(res.GA_W_MLFC1$padj < 0.1)
 
 #---MA plot from res---------------------------------------
-plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
-mcols(res.TA_W_M, use.names = TRUE)
+plotMA.GA_W_M <- plotMA(res.GA_W_M, ylim=c(-2,2))
+mcols(res.GA_W_M, use.names = TRUE)
 
 #---filter DE genes using subsets----------------------------------
 #Set FDR threshold of p <= 0.05
-res.TA_W_M_filtered <- as.data.frame(as.matrix(subset(res.TA_W_M, pvalue <= 0.05)))
+res.GA_W_M_filtered <- as.data.frame(as.matrix(subset(res.GA_W_M, pvalue <= 0.05)))
 #head(res.TA_W_M_filtered)
 #dim(res.TA_W_M_filtered)
 
 #Set adjusted p-value to 0.05
-res.TA_W_M_filtered <- as.data.frame(as.matrix(subset(res.TA_W_M, padj <= 0.05)))
+res.GA_W_M_filtered <- as.data.frame(as.matrix(subset(res.GA_W_M, padj <= 0.05)))
 #head(res.TA_W_M_filtered)
 #dim(res.TA_W_M_filtered)
 
 #Set log fold-change and adjusted p-value
-res.TA_W_M_filtered$absFC <- abs(res.TA_W_M_filtered$log2FoldChange)
-res.TA_W_M_filtered2 <- subset(res.TA_W_M_filtered, absFC > 0.5)
-res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, padj < 0.05)
+res.GA_W_M_filtered$absFC <- abs(res.GA_W_M_filtered$log2FoldChange)
+res.GA_W_M_filtered2 <- subset(res.GA_W_M_filtered, absFC > 0.5)
+res.GA_W_M_filtered3 <- subset(res.GA_W_M_filtered2, padj < 0.05)
 #head(res.TA_W_M_filtered)
 #dim(res.TA_W_M_filtered)
 #head(res.TA_W_M_filtered2)
@@ -162,13 +162,13 @@ res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, padj < 0.05)
 #dim(res.TA_W_M_filtered3)
 
 #---Print out the filtered data as a text file----------------------------
-write.table(res.TA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_filtered_20180628.txt", sep ="\t")
+write.table(res.GA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_filtered_20180628.txt", sep ="\t")
 #write.csv(as.data.frame(res.TA_W_M_filtered), file = "")
 
 #---Heatmap of the 30 most significant fold-change genes--------------
 install.packages("pheatmap")
 library("pheatmap")
-Mat <- assay(vsd)[ head(order(res.TA_W_M$padj),30), ]
+Mat <- assay(vsd)[ head(order(res.GA_W_M$padj),30), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat)
@@ -209,7 +209,6 @@ Heatmap(highly_variable_lcpm)
 #---Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()
-
 #======================================================
 #============== Arun's Code ===========================
 
