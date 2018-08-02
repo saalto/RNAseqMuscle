@@ -67,6 +67,9 @@ heatmap.2(assay(vsd)[select,], col = hmcol,
           dendrogram="none", trace="none", margin=c(10, 6))
 
 #---Comparing samples to each other for correlation patterning-----------
+distsRL <- dist(t(assay(rld)))
+mat <- as.matrix(distsRL)
+rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), paste(condition, type, sep = " : "))
 heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
 dev.off()
 
@@ -162,7 +165,7 @@ res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, padj < 0.05)
 #dim(res.TA_W_M_filtered3)
 
 #---Print out the filtered data as a text file----------------------------
-write.table(res.TA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_filtered_20180628.txt", sep ="\t")
+write.table(res.TA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_filtered_20180802.txt", sep ="\t")
 #write.csv(as.data.frame(res.TA_W_M_filtered), file = "")
 
 #---Heatmap of the 30 most significant fold-change genes--------------

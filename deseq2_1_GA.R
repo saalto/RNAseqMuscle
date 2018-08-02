@@ -116,8 +116,6 @@ write.table(res.GA_W_M_filtered, "/Users/vera0chang/Works/R/GA_data/res.GA_W_M_f
 #ncol(res.TA_W_M_filtered) 
 #head(res.TA_W_M_filtered)
 
-
-
 var_genes <- apply(logTransCounts, 1, var)
 #head(var_genes)
 select_var <- names(sort(var_genes, decreasing=TRUE))[1:200]
@@ -126,8 +124,6 @@ highly_variable_lcpm <- logTransCounts[select_var,]
 #dim(highly_variable_lcpm)
 #head(highly_variable_lcpm)
 Heatmap(highly_variable_lcpm)
-
-
 
 
 # make the matrix for heatmap
@@ -141,11 +137,6 @@ Heatmap(highly_variable_lcpm)
 #GA_W_M.heatmap.matrix <- t(GA_W_M.heatmap.matrix)
 #Heatmap(GA_W_M.heatmap.matrix)
 #Heatmap(GA_W_M.heatmap.matrix, cluster_columns = F)
-
-
-
-
-
 
 
 

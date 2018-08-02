@@ -34,7 +34,7 @@ sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, cond
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = ~ condition)
 print(ddsHTSeq)
 
-#Filter out genes with zero counts
+#---Filter out genes with zero counts------------------------
 ddsHTSeqFiltered <- ddsHTSeq [ rowSums(counts(ddsHTSeq)) > 200, ]
 ddsHTSeqFiltered <- DESeq(ddsHTSeqFiltered)
 print(ddsHTSeqFiltered)
