@@ -10,20 +10,20 @@ library("pamr")
 library("MCL")
 
 ##---Set working directory-----------------------------
-setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_TAtextfiles/")
-directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_TAtextfiles/"
+setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/")
+directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/"
 
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory-----
 sampleFiles <- dir(pattern = 'sorted')
-#print(sampleFiles)
+print(sampleFiles)
 
 #-sample group set up
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
-#print(ConditionMatch)
+print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
-#print(sampleConditions)
+print(sampleConditions)
 sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, condition = sampleConditions)
-#print(sampleTable)
+print(sampleTable)
 
 #-reassignment of the files based on the Foxo3 gene expression patterning,
 #-which is higher in the flox/Z mice than the MCK mice. this gene expression 
@@ -193,8 +193,8 @@ res.TA_W_M_filtered2 <- subset(res.TA_W_M_filtered, absFC > 1)
 
 
 #---Print out the filtered data as a text file---
-write.table(res.TA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_filtered_20180814_2.txt", sep ="\t")
-write.table(res.TA_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_analysis/res.TA_W_M_20180815.txt", sep = "\t")
+write.table(res.TA_W_M_filtered, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_20180820.txt", sep ="\t")
+write.table(res.TA_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_20180820.txt", sep = "\t")
 #write.csv(as.data.frame(res.TA_W_M_filtered), file = "")
 
 #---------------------------------------------------------------------
