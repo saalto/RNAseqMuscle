@@ -1,5 +1,5 @@
 #
-##-------Clear data and load packages-----------------------
+##-------Clear data and figure & load packages-----------------------
 rm(list = ls())
 dev.off()
 source('https://bioconductor.org/biocLite.R')
@@ -8,9 +8,15 @@ library("ggplot2")
 library("ComplexHeatmap")
 library("pamr")
 library("MCL")
+library("AnnotationDbi")
+library("Mus.musculus")
 
-##---Set working directory-----------------------------
-setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus/")
+##---Set working directory to iteration 1-----------------------------
+#setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration1/RNAseq_SOLtextfiles")
+#directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration1/RNAseq_SOLtextfiles/"
+
+##---Set working directory to iteration 2-----------------------------
+setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus")
 directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus/"
 
 ##---Set up DESeq2 data, based on file names of HTSeq counts in working directory---
@@ -25,19 +31,19 @@ sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
 sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, condition = sampleConditions)
 #print(sampleTable)
 
-##----ONLY USE IF USING ARUN'S TEXT FILES LOCATING ON CAPECCHI----------
-#-removal of files referring to GA and TA
-#sampleTable <- sampleTable[c(1:7, 9:13),] #Use only with Arun's text files
-#print(sampleTable)
+##----ONLY USE IF USING ARUN'S TEXT FILES LOCATED IN ITERATION 1----------
+# #-removal of files referring to GA and TA
+# sampleTable <- sampleTable[c(1:7, 9:13),] #Use only with Arun's text files
+# #print(sampleTable)
 
-# -reassignment of the files based on the Foxo3 gene expression patterning,
-# -which is higher in the flox/Z mice than the MCK mice. this gene expression
-# -is a better indicator of genotype than the labeling provided
-# -DESeq2 object must be created and rld array generated in order to observe
-# -Foxo3 gene expressions.
-# Use only with Arun's text files
-#sampleTable$condition <- c(rep("MCK", 3), rep("FLZ", 4), rep("MCK", 2), rep("FLZ", 3)) 
-#print(sampleTable)
+# # -reassignment of the files based on the Foxo3 gene expression patterning,
+# # -which is higher in the MCK mice than in the flox/Z mice. this gene expression
+# # -is a better indicator of genotype than the labeling provided
+# # -DESeq2 object must be created and rld array generated in order to observe
+# # -Foxo3 gene expressions.
+# # Use only with Arun's text files
+# sampleTable$condition <- c(rep("MCK", 3), rep("FLZ", 4), rep("MCK", 2), rep("FLZ", 3))
+# print(sampleTable)
 
 ##---Calculate DESeq2 from HTSeq count tables-------------
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = ~ condition)
@@ -59,14 +65,12 @@ logTransCounts <- assay(rld)
 logTransCounts[grep("Pitx2", rownames(logTransCounts)), ] #expression levels should be similar between wildtype and mutant
 logTransCounts[grep("Foxo3", rownames(logTransCounts)), ] #expression levels should be different between wildtype and mutant
 #logTransCounts[grep("Arf1", rownames(logTransCounts)), ]
-#rld <- rlog (ddsHTSeqFiltered, blind = F, logTransCounts[grep("Pitx2", rownames(logTransCounts)), ])
-#logTransCounts[grep("Foxo3", logTransCounts), ]
-#mcols(object)$dispFit
 
+ 
 ##---Comparing heatmaps of the three normalizing methods------------------
 #TO-DO: Print out the figures
 library("RColorBrewer")
-install.packages("gplots")
+#install.packages("gplots")
 library("gplots")
 
 select <- order(rowMeans(counts(ddsHTSeqFiltered,normalized=TRUE)),decreasing=TRUE)[1:30]
@@ -90,6 +94,7 @@ heatmap.2(assay(vsd)[select,], col = hmcol,
           dendrogram="none", trace="none", margin=c(10, 6), main = "Variance Stablizing Transformation")
 dev.off()
 
+
 ##---Comparing samples to each other for correlation patterning 
 #-using rlog transformation (rld)---
 #TO-DO: print off the figures
@@ -99,10 +104,10 @@ rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), paste(conditi
 heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13), main = "Correlation between Samples based on rLog Transformation")
 dev.off()
 
-#-using variance stabilizing transformation (rld)---
+#-using variance stabilizing transformation (VSD)---
 #TO-DO: print off the figures
-distsRL <- dist(t(assay(vsd)))
-mat <- as.matrix(distsRL)
+distsVSD <- dist(t(assay(vsd)))
+mat <- as.matrix(distsVSD)
 rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), paste(condition, type, sep = " : "))
 heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13), main = "Correlation between Samples based on Variance Stabilizing Transformation")
 dev.off()
@@ -119,8 +124,8 @@ dev.off()
 
 #-Variance Stablizing Transformation (vsd)----
 #TO-DO: print off the figures
-distsRL <- dist(t(assay(vsd)))
-DistMatrix <- as.matrix(distsRL)
+distsVSD <- dist(t(assay(vsd)))
+DistMatrix <- as.matrix(distsVSD)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
@@ -128,7 +133,7 @@ dev.off()
 
 ##---Poisson Distance Plot------------
 #TO-DO: print off the figures
-install.packages("PoiClaClu")
+#install.packages("PoiClaClu")
 library("PoiClaClu")
 poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
 samplePoisDistMatrix <- as.matrix( poisd$dd )
@@ -136,6 +141,7 @@ mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
 ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3) + ggtitle("Poisson Distance Plot of the Read Counts")
 dev.off()
+
 
 ##---Principle component analysis based on log2 normalized count matrix---
 #TO-DO: print off the figures
@@ -162,9 +168,12 @@ ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
   #scale_y_continuous(limits = c(0.3, 0.4)) +
   #scale_x_continuous(limits = c(-5, 5)) +
   scale_color_discrete(name = "Sample") +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   ggtitle("Principle Component Analysis based on rlog transformation")
 #print(ddsHTSeqFiltered)
 dev.off()
+
 
 ##---Calculate differentially expressed genes from DESeq2---
 res.SOL_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "M", "F"))
@@ -177,7 +186,7 @@ mcols(res.SOL_W_M, use.names = TRUE)
 dev.off()
 
 ##---Volcano Plot of the results----
-#TO-DO: print off the figures
+#TO-DO: flip the volcano plot, change the colors
 #-Measuring the effect of fold change and the statistical significance
 with(res.SOL_W_M, plot(log2FoldChange, -log10(pvalue), pch=10, main="Volcano plot", xlim=c(-5,7)))
 
@@ -193,6 +202,7 @@ with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), points(log2FoldChan
 #with(subset(res.SOL_W_M, -log10(pvalue)>120 & abs(log2FoldChange)>1), textxy(log2FoldChange, -log10(pvalue), labs=rownames(res.SOL_W_M), cex=1))
 with(subset(res.SOL_W_M), identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M))) #Need to click on graphic to label the outliers
 dev.off()
+
 
 ##---Filtering the Results (DE genes) into tables---
 #-Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
@@ -231,39 +241,43 @@ write.table(res.SOL_W_M_filtered2, "C:/Users/sarah/OneDrive/Documents/2018/03_20
 write.table(res.SOL_W_M_filtered3, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_W_M_filtered_padjfoldchange_20180821.txt", sep ="\t")
 write.table(res.SOL_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_W_M_Nofilter_20180820.txt", sep = "\t")
 
+
 ##---Heatmap of the most significant fold-change genes--------------
-#TO-DO: Remove the cluttered labels
-install.packages("pheatmap")
+#install.packages("pheatmap")
 library("pheatmap")
 
-#Heatmap of the significant fold-change genes
-Mat <- assay(vsd)[order(res.SOL_W_M_filtered3$padj), ]
-Mat <- Mat - rowMeans(Mat)
-df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat)
-dev.off()
-
+#Heatmap of the significant (padj<0.05) DE genes based on VSD
+#library(RColorBrewer)
 Mat <- assay(vsd)[order(res.SOL_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat)
+pheatmap(Mat, color= colorRampPalette(c("#990066", "#ffffff", "#009933"))(14), show_rownames = F, show_colnames = F)
 dev.off()
 
-Map <- assay(rld)[order(res.SOL_W_M_filtered2$padj), ]
-Map <- Map - rowMeans(Map)
-df <- as.data.frame(colData(rld)[,c("condition")])
-pheatmap(Map)
-dev.off()
-
-Map <- assay(rld)[order(res.SOL_W_M_filtered2$padj), ]
-Map <- Map - rowMeans(Map)
-df <- as.data.frame(colData(rld)[,c("condition")])
-pheatmap(Map)
-dev.off()
+# #Heatmap of the significant (padj< 0.05) and fold-change (>1) DE genes based on RLD
+# Map <- assay(rld)[order(res.SOL_W_M_filtered3$padj), ]
+# Map <- Map - rowMeans(Map)
+# df <- as.data.frame(colData(rld)[,c("condition")])
+# pheatmap(Map)
+# dev.off()
+# 
+# #Heatmap of the significant (padj<0.05) DE genes based on RLD
+# Map <- assay(rld)[order(res.SOL_W_M_filtered2$padj), ]
+# Map <- Map - rowMeans(Map)
+# df <- as.data.frame(colData(rld)[,c("condition")])
+# pheatmap(Map)
+# dev.off()
+# 
+# #Heatmap of the significant (padj< 0.05) and fold-change (>1) DE genes based on VSD
+# Mat <- assay(vsd)[order(res.SOL_W_M_filtered3$padj), ]
+# Mat <- Mat - rowMeans(Mat)
+# df <- as.data.frame(colData(vsd)[,c("condition")])
+# pheatmap(Mat)
+# dev.off()
 
 
 ##----for Heatmap plots of 200 gene expressions and significant Log2fold changes-----
-# TO DO: I am not seeing what I should be seeing
+# TO DO: Work in progress...I am not seeing what I should be seeing
 # var_genes <- apply(logTransCounts, 1, var)
 # #head(var_genes)
 # select_var <- names(sort(var_genes, decreasing=TRUE))[1:200]
@@ -286,3 +300,61 @@ dev.off()
 # Heatmap(highly_variable_lcpm)
 # dev.off()
 
+
+##---Annotating and exporting Results using edgeR and DESeq objects---
+#---NOTE: mm10 reference genome does not have keys-
+# require(Mus.musculus)
+# columns(Mus.musculus)
+# keytypes(Mus.musculus)
+# keys(Mus.musculus,"ENSEMBL")
+# #TO-DO: the gene names need to match the keys
+# keys <- row.names(res.SOL_W_M_filtered2)
+# select(Mus.musculus, keys, column = "SYMBOL", keytype = "ENSEMBL")
+# res.SOL_W_M_filtered2$symbol <- mapIds(Mus.musculus, 
+#                                        keys = row.names(res.SOL_W_M_filtered2),
+#                                        column ="SYMBOL",
+#                                        keytype = "ENSEMBL",
+#                                        multiVals = "first")
+# ## 'select()' returned 1:many mapping between keys and columns
+# #$y$genes$symbol <- res.SOL_W_M_filtered2$symbol #For EdgeR
+# 
+# res.SOL_W_M_filtered2$entrez <- mapIds(Mus.musculus,
+#                                        keys = row.names(res.SOL_W_M_filtered2),
+#                                        column = "ENTREZID",
+#                                        keytype = "ENSEMBL",
+#                                        multiVals = "first")
+# ## 'select()' returned 1:many mapping between keys and columns
+# #y$genes$entrez <- res.SOL_W_M_filtered2$entrez #For EdgeR
+# 
+# res.SOL_W_M_filtered2$symbol <- mapIds(Homo.sapiens,
+#                                        keys=row.names(res.SOL_W_M_filtered2),
+#                                        column="GENENAME",
+#                                        keytype="ENSEMBL",
+#                                        multiVals="first")
+# ## 'select()' returned 1:many mapping between keys and columns
+# #y$genes$symbol <- res.SOL_W_M_filtered2$symbol #For EdgeR
+# 
+# resOrdered <- res.SOL_W_M_filtered2[order(res.SOL_W_M_filtered2$padj),]
+# head(resOrdered)
+
+##---Annotation Using DESeq object---
+#---NOTE: mm10 reference genome does not have keys---
+# install.packages("goseq")
+# library(goseq)
+# 
+# assayed.genes <- rownames(res.SOL_W_M)
+# de.genes <-rownames(res.SOL_W_M)[which(res.SOL_W_M$padj < 0.05)]
+# gene.vector = as.integer(assayed.genes%in%de.genes)
+# names(gene.vector) = assayed.genes
+# head(gene.vector)
+# 
+# supportedOrganisms()
+# supportedOrganisms()[supportedOrganisms()$Genome=="mm10",]
+# pwf = nullp(genes, "mm10", "ensGene")
+# pwf = nullp(genes, "mm10", "knownGene")
+# pwf = nullp(genes, "mm10", "geneSymbol")
+# head(pwf)
+
+#---Clear data and load packages-----------------------
+rm(list = ls())
+dev.off()
