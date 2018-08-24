@@ -225,17 +225,17 @@ table(res.TA_W_MLFC1$padj < 0.05)
 #-Subset data based on (1) adjusted p-value less than 0.05 (2) absolute value of the log2 fold change greater than 0.5
 res.SOL_W_M_filtered2 <- subset(res.SOL_W_M, padj < 0.05)
 res.SOL_W_M_filtered2$absFC <- abs(res.SOL_W_M_filtered2$log2FoldChange)
-#head(res.SOL_W_M_filtered3)
-#dim(res.SOL_W_M_filtered3)
-
-res.SOL_W_M_filtered3 <- subset(res.SOL_W_M_filtered2, absFC > 0.5)
 #head(res.SOL_W_M_filtered2)
 #dim(res.SOL_W_M_filtered2)
 
+res.SOL_W_M_filtered3 <- subset(res.SOL_W_M_filtered2, absFC > 1)
+#head(res.SOL_W_M_filtered3)
+#dim(res.SOL_W_M_filtered3)
+
 #-Print out the filtered data as a text file
-write.table(res.SOL_W_M_filtered2, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_filtered_padj_20180821.txt", sep ="\t")
-write.table(res.SOL_W_M_filtered3, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_filtered_padjfoldchange_20180821.txt", sep ="\t")
-write.table(res.SOL_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_Nofilter_20180820.txt", sep = "\t")
+write.table(res.SOL_W_M_filtered2, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_filtered_padj_20180824.txt", sep ="\t")
+write.table(res.SOL_W_M_filtered3, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_filtered_padjfoldchange_20180824.txt", sep ="\t")
+write.table(res.SOL_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_Nofilter_20180824.txt", sep = "\t")
 
 
 ##---Heatmap of the most significant fold-change genes--------------
