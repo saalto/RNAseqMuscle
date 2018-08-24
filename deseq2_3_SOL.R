@@ -186,22 +186,31 @@ mcols(res.SOL_W_M, use.names = TRUE)
 dev.off()
 
 ##---Volcano Plot of the results----
-#TO-DO: flip the volcano plot, change the colors
-#-Measuring the effect of fold change and the statistical significance
 with(res.SOL_W_M, plot(log2FoldChange, -log10(pvalue), pch=10, main="Volcano plot", xlim=c(-5,7)))
 
 #-Add colored points: red if padj<0.05, orange if log2FC>1, green if both
-with(subset(res.SOL_W_M, padj<0.05), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.SOL_W_M, abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="orange"))
-with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+with(subset(res.SOL_W_M, padj<0.05), points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+with(subset(res.SOL_W_M, abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
 
 #-Label points with the textxy function from the calibrate plot
-#TO-DO: find a way to separate out the labels
-#install.packages("calibrate")
-#library(calibrate)
-#with(subset(res.SOL_W_M, -log10(pvalue)>120 & abs(log2FoldChange)>1), textxy(log2FoldChange, -log10(pvalue), labs=rownames(res.SOL_W_M), cex=1))
 with(subset(res.SOL_W_M), identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M))) #Need to click on graphic to label the outliers
 dev.off()
+
+
+##---Flipped Volcano Plot of results---
+#TO-DO: flip the volcano plot, change the colors
+#-Measuring the effect of fold change and the statistical significance
+with(res.SOL_W_M, plot(log2FoldChange, log10(pvalue), pch=10, main="Volcano plot", xlim=c(-5,7)))
+
+# #-Add colored points: red if padj<0.05, orange if log2FC>1, green if both
+# with(subset(res.SOL_W_M, padj<0.05), points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+# with(subset(res.SOL_W_M, abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+# with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+# 
+# #-Label points with the textxy function from the calibrate plot
+# with(subset(res.SOL_W_M), identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M))) #Need to click on graphic to label the outliers
+# dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
@@ -213,17 +222,6 @@ table(res.TA_W_M.05$padj < 0.05)
 res.SOL_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
 table(res.TA_W_MLFC1$padj < 0.05)
 
-#-Set p-value less than 0.05
-#res.SOL_W_M_filtered <- as.data.frame(as.matrix(subset(res.SOL_W_M, pvalue < 0.05)))
-#head(res.TA_W_M_filtered)
-#dim(res.TA_W_M_filtered)
-
-#-Set adjusted p-value less than 0.05
-#res.SOL_W_M_filtered <- as.data.frame(as.matrix(subset(res.SOL_W_M, padj < 0.05)))
-#res.SOL_W_M_filtered$absFC <- abs(res.SOL_W_M_filtered$log2FoldChange)
-#print(res.SOL_W_M_filtered)
-#dim(res.SOL_W_M_filtered)
-
 #-Subset data based on (1) adjusted p-value less than 0.05 (2) absolute value of the log2 fold change greater than 0.5
 res.SOL_W_M_filtered2 <- subset(res.SOL_W_M, padj < 0.05)
 res.SOL_W_M_filtered2$absFC <- abs(res.SOL_W_M_filtered2$log2FoldChange)
@@ -232,14 +230,12 @@ res.SOL_W_M_filtered2$absFC <- abs(res.SOL_W_M_filtered2$log2FoldChange)
 
 res.SOL_W_M_filtered3 <- subset(res.SOL_W_M_filtered2, absFC > 0.5)
 #head(res.SOL_W_M_filtered2)
-#nrow(res.SOL_W_M_filtered2)
-#ncol(res.SOL_W_M_filtered2)
 #dim(res.SOL_W_M_filtered2)
 
 #-Print out the filtered data as a text file
-write.table(res.SOL_W_M_filtered2, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_W_M_filtered_padj_20180821.txt", sep ="\t")
-write.table(res.SOL_W_M_filtered3, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_W_M_filtered_padjfoldchange_20180821.txt", sep ="\t")
-write.table(res.SOL_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_W_M_Nofilter_20180820.txt", sep = "\t")
+write.table(res.SOL_W_M_filtered2, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_filtered_padj_20180821.txt", sep ="\t")
+write.table(res.SOL_W_M_filtered3, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_filtered_padjfoldchange_20180821.txt", sep ="\t")
+write.table(res.SOL_W_M, "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis_tables/res.SOL_W_M_Nofilter_20180820.txt", sep = "\t")
 
 
 ##---Heatmap of the most significant fold-change genes--------------
@@ -254,25 +250,11 @@ df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#990066", "#ffffff", "#009933"))(14), show_rownames = F, show_colnames = F)
 dev.off()
 
-# #Heatmap of the significant (padj< 0.05) and fold-change (>1) DE genes based on RLD
-# Map <- assay(rld)[order(res.SOL_W_M_filtered3$padj), ]
-# Map <- Map - rowMeans(Map)
-# df <- as.data.frame(colData(rld)[,c("condition")])
-# pheatmap(Map)
-# dev.off()
-# 
 # #Heatmap of the significant (padj<0.05) DE genes based on RLD
 # Map <- assay(rld)[order(res.SOL_W_M_filtered2$padj), ]
 # Map <- Map - rowMeans(Map)
 # df <- as.data.frame(colData(rld)[,c("condition")])
 # pheatmap(Map)
-# dev.off()
-# 
-# #Heatmap of the significant (padj< 0.05) and fold-change (>1) DE genes based on VSD
-# Mat <- assay(vsd)[order(res.SOL_W_M_filtered3$padj), ]
-# Mat <- Mat - rowMeans(Mat)
-# df <- as.data.frame(colData(vsd)[,c("condition")])
-# pheatmap(Mat)
 # dev.off()
 
 
@@ -354,6 +336,19 @@ dev.off()
 # pwf = nullp(genes, "mm10", "knownGene")
 # pwf = nullp(genes, "mm10", "geneSymbol")
 # head(pwf)
+
+
+##---Perform Differential Correlation Analysis---
+install.packages("DGCA")
+library(DGCA)
+#data(Gene names as row names and sample names in the columns, gene expression value in the corresponding cell)
+#data(DESeq object to identify sample names to tissue type)
+
+# ddcor_res = ddcorAll(inputMat = darmanis, design = design_mat,
+#                      compare = c("F", "M"),
+#                      adjust = "none", heatmapPlot = TRUE, nPerm = 0, nPairs = 100)
+# head(ddcor_res)
+
 
 #---Clear data and load packages-----------------------
 rm(list = ls())
