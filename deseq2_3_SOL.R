@@ -144,16 +144,22 @@ dev.off()
 
 
 ##---Principle component analysis based on log2 normalized count matrix---
-#TO-DO: print off the figures
+
+install.packages("factoextra")
+library(factoextra)
 OGPCAN <-prcomp(logTransCounts, center = T, scale = F, tol = 0)
 #print(OGPCAN)
+fviz_eig(OGPCAN)
+fviz_pca_ind(OGPCAN,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
-#OGPCAN_matrix <- OGPCAN_matrix[, 1:7]
 #print(OGPCAN_matrix)
 
 #---PCA plot replicates set up---
 OGPCAN_matrix$Condition <- sampleTable$condition
-#rep("m1", 1), rep("m2", 1), rep("m3", 1)) 
 #print(OGPCAN_matrix)
 
 #---Plot PCA---
@@ -165,13 +171,10 @@ ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
         axis.title.y = element_text(size = 16, face = "bold"),
         legend.title = element_text(size = 16, face = 'bold'),
         legend.text = element_text(size = 14)) +
-  #scale_y_continuous(limits = c(0.3, 0.4)) +
-  #scale_x_continuous(limits = c(-5, 5)) +
   scale_color_discrete(name = "Sample") +
-  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
-  ggtitle("Principle Component Analysis based on rlog transformation")
-#print(ddsHTSeqFiltered)
+  #xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  #ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  #ggtitle("Principle Component Analysis based on rlog transformation")
 dev.off()
 
 
@@ -188,10 +191,10 @@ dev.off()
 ##---Volcano Plot of the results----
 with(res.SOL_W_M, plot(log2FoldChange, -log10(pvalue), pch=10, main="Volcano plot", xlim=c(-5,7)))
 
-#-Add colored points: red if padj<0.05, orange if log2FC>1, green if both
+#-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
 with(subset(res.SOL_W_M, padj<0.05), points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-with(subset(res.SOL_W_M, abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+with(subset(res.SOL_W_M, abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
 
 #-Label points with the textxy function from the calibrate plot
 with(subset(res.SOL_W_M), identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M))) #Need to click on graphic to label the outliers
@@ -256,6 +259,9 @@ dev.off()
 # df <- as.data.frame(colData(rld)[,c("condition")])
 # pheatmap(Map)
 # dev.off()
+
+## GO term analysis
+# Isolate the data points that correspond to molecular
 
 
 ##----for Heatmap plots of 200 gene expressions and significant Log2fold changes-----
@@ -339,8 +345,8 @@ dev.off()
 
 
 ##---Perform Differential Correlation Analysis---
-install.packages("DGCA")
-library(DGCA)
+#install.packages("DGCA")
+#library(DGCA)
 #data(Gene names as row names and sample names in the columns, gene expression value in the corresponding cell)
 #data(DESeq object to identify sample names to tissue type)
 
