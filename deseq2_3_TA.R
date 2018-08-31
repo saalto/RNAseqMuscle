@@ -202,7 +202,7 @@ res.ind$cos2           # Quality of representation
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- sampleTable$condition
+OGPCAN_matrix$Condition <- c("WT", "MUT", "WT", "MUT", "MUT", "MUT", "MUT")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -237,7 +237,7 @@ plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
 ##---Volcano Plots----------------------------------------------------------------
 #-Unlabelled plot----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                       pch=10, main="Volcano plot", xlim=c(-5,7),
+                       pch=10, main="Volcano plot", xlim=c(-6,8),
                        xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                        ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -253,7 +253,7 @@ dev.off()
 
 #-Labeled plot (left side)----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                       pch=10, main="Volcano plot", xlim=c(-5,-1),
+                       pch=10, main="Volcano plot", xlim=c(-6,-1),
                        xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                        ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -330,7 +330,7 @@ install.packages("pheatmap")
 library("pheatmap")
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.TAL_W_M_filtered$padj), ]
+Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 

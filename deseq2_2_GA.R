@@ -35,7 +35,7 @@ print(sampleTable)
 # #-is a better indicator of genotypes than the labeling provided.
 # #-DESeq2 object and rld arrary was generated first before this line to observe
 # #-the Foxo3 gene expression.
-sampleTable$condition <- c(rep("GF", 3), rep("GF",2))
+sampleTable$condition <- c(rep("GF", 3), rep("GM",2))
 #print(sampleTable)
 
 
@@ -336,7 +336,7 @@ install.packages("pheatmap")
 library("pheatmap")
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.TAL_W_M_filtered$padj), ]
+Mat <- assay(vsd)[order(res.GA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
