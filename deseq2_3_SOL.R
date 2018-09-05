@@ -17,20 +17,22 @@ library("Mus.musculus")
 
 ##---Set working directory to iteration 2-----------------------------
 setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus")
-directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus/"
+directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus"
 
 ##---Set up DESeq2 data, based on file names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
-#print(sampleFiles)
+print(sampleFiles)
+
+identifierNames <- c("Control 1", "Control 2", "Control 3", "Control 4", "Control 5", "Control 6", "MCK 1", "MCK 2", "MCK 3", "MCK 4", "MCK 5")
 
 #---sample group set up---
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
-#print(ConditionMatch)
+print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
-#print(sampleConditions)
-sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, 
+print(sampleConditions)
+sampleTable <- data.frame(sampleName = identifierNames, fileName = sampleFiles, 
                           condition = sampleConditions)
-#print(sampleTable)
+print(sampleTable)
 
 ##----ONLY USE IF USING ARUN'S TEXT FILES LOCATED IN ITERATION 1----------
 # #-removal of files referring to GA and TA
@@ -54,7 +56,7 @@ ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,
 ddsHTSeqFiltered <- ddsHTSeq [ rowSums(counts(ddsHTSeq)) > 0, ] 
 #Filtering out genes with zero counts
 ddsHTSeqFiltered <- DESeq(ddsHTSeqFiltered)
-#print(ddsHTSeqFiltered)
+print(ddsHTSeqFiltered)
 
 ##---Visualizations of Data Transformations-------------------------------------
 #-Generate log2 normalized count matrix and variance stabilizing matrix
@@ -83,21 +85,22 @@ hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100)
 #pdf("readcountsTranform.pdf")
 heatmap.2(counts(ddsHTSeqFiltered,normalized=TRUE)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
-          dendrogram="none", trace="none", margin=c(10,6), 
-          main = "Read Counts Transformation")
+          dendrogram="none", trace="none", margin=c(10,6))
+          #main = "Read Counts Transformation")
 dev.off()
 
 #pdf("rlogTransform.pdf")
 heatmap.2(assay(rld)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
-          dendrogram="none", trace="none", margin=c(10, 6), main = "rLog Transformation")
+          dendrogram="none", trace="none", margin=c(10, 6))
+          #main = "rLog Transformation")
 dev.off()
 
 #pdf("VariStablizeTransform.pdf")
 heatmap.2(assay(vsd)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
-          dendrogram="none", trace="none", margin=c(10, 6), 
-          main = "Variance Stablizing Transformation")
+          dendrogram="none", trace="none", margin=c(10, 6))
+          #main = "Variance Stablizing Transformation")
 dev.off()
 
 
@@ -107,8 +110,8 @@ distsRL <- dist(t(assay(rld)))
 mat <- as.matrix(distsRL)
 rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), 
                                         paste(condition, type, sep = " : "))
-heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13), 
-          main = "Correlation between Samples based on rLog Transformation")
+heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
+          #main = "Correlation between Samples based on rLog Transformation")
 dev.off()
 
 #-using variance stabilizing transformation (VSD)---
@@ -116,8 +119,8 @@ distsVSD <- dist(t(assay(vsd)))
 mat <- as.matrix(distsVSD)
 rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), 
                                         paste(condition, type, sep = " : "))
-heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13), 
-          main = "Correlation between Samples based on Variance Stabilizing Transformation")
+heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
+          #main = "Correlation between Samples based on Variance Stabilizing Transformation")
 dev.off()
 
 
@@ -127,8 +130,10 @@ distsRL <- dist(t(assay(rld)))
 DistMatrix <- as.matrix(distsRL)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(rld)))
-ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
-  ggtitle("MDS using Euclidean distance and rLog Transformation")
+mds$condition <- c("Control", "Control", "Control", "Control", "Control", 
+                   "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) 
+  #ggtitle("MDS using Euclidean distance and rLog Transformation")
 dev.off()
 
 #-Variance Stablizing Transformation (vsd)----
@@ -136,8 +141,10 @@ distsVSD <- dist(t(assay(vsd)))
 DistMatrix <- as.matrix(distsVSD)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
-ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
-  ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
+mds$condition <- c("Control", "Control", "Control", "Control", "Control", 
+                   "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
+  #ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
 dev.off()
 
 
@@ -148,8 +155,10 @@ poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
 samplePoisDistMatrix <- as.matrix( poisd$dd )
 mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
-ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3) + 
-  ggtitle("Poisson Distance Plot of the Read Counts")
+mdsPois$condition <- c("Control", "Control", "Control", "Control", "Control", 
+                       "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3)
+  #ggtitle("Poisson Distance Plot of the Read Counts")
 dev.off()
 
 
@@ -164,7 +173,7 @@ OGPCAN <-prcomp(logTransCounts, center = T, scale = F, tol = 0)
 
 # Visualize eigenvalues (scree plot). 
 #Show the percentage of variance explained by each principal component.
-fviz_eig(OGPCAN)
+fviz_eig(OGPCAN, addlabel = TRUE, main= NULL)
 
 # Graph of individuals. Individuals with a similar profile are grouped together
 fviz_pca_ind(OGPCAN,
@@ -207,8 +216,8 @@ res.ind$cos2           # Quality of representation
 #---PCA plot replicates set up---
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("WT", "WT", "WT", "WT", "WT", 
-                             "WT", "MUT", "MUT", "MUT", "MUT", "MUT")
+OGPCAN_matrix$Condition <- c("Control", "Control", "Control", "Control", "Control", 
+                             "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
 #print(OGPCAN_matrix)
 
 #---Plot PCA---
@@ -243,7 +252,7 @@ dev.off()
 ##---Volcano Plots---
 #-Unlabelled plot----
 with(res.SOL_W_M, plot(log2FoldChange, -log10(pvalue), 
-                       pch=10, main="Volcano plot", xlim=c(-5,7),
+                       pch=10, xlim=c(-5,7),
                        xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                        ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -273,14 +282,14 @@ with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1),
 
 #-Label points with the textxy function from the calibrate plot
 with(subset(res.SOL_W_M), 
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M), cex=0.6)) 
+     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M), cex=0.5)) 
 #Need to click on graphic to label the outliers
 
 dev.off()
 
 #-Labeled plot (right side)----
 with(res.SOL_W_M, plot(log2FoldChange, -log10(pvalue), 
-                       pch=10, main="Volcano plot", xlim=c(1,7),
+                       pch=10, xlim=c(1,7),
                        xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                        ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -294,7 +303,7 @@ with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1),
 
 #-Label points with the textxy function from the calibrate plot
 with(subset(res.SOL_W_M), 
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M), cex=0.6)) 
+     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M), cex=0.5)) 
 
 dev.off()
 
