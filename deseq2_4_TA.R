@@ -1,4 +1,8 @@
-#
+## This script uses files that were (1) renamed after identifying 
+## mislabeling of tibialis anterior samples.and (2) removal of one 
+## file that the heatmap showed confusing expression levels when 
+## compared to the other mutants.
+
 ##---Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()
@@ -9,13 +13,9 @@ library("ComplexHeatmap")
 library("pamr")
 library("MCL")
 
-##---Set working directory to iteration 1---
-#setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration1/RNAseq_TAtextfiles/")
-#directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration1/RNAseq_TAtextfiles/"
-
 ##---Set working directory to iteration 2---
-setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/renamed_files")
-directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/renamed_files"
+setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/renamed_files_2")
+directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/renamed_files_2"
 
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
@@ -62,7 +62,7 @@ logTransCounts[grep("Foxo3", rownames(logTransCounts)), ]
 
 #---Comparing heatmaps of the three normalizing methods------------------
 library("RColorBrewer")
-install.packages("gplots")
+#install.packages("gplots")
 library("gplots")
 
 select <- order(rowMeans(counts(ddsHTSeqFiltered,normalized=TRUE)),decreasing=TRUE)[1:30]
@@ -91,129 +91,137 @@ heatmap.2(assay(vsd)[select,], col = hmcol,
 dev.off()
 
 
-# ##---Comparing samples to each other for correlation patterning 
-# #-using rlog transformation (rld)---
-# distsRL <- dist(t(assay(rld)))
-# mat <- as.matrix(distsRL)
-# rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), 
-#                                         paste(condition, type, sep = " : "))
-# heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
-#           #main = "Correlation between Samples based on rLog Transformation")
-# dev.off()
-# 
-# #-using variance stabilizing transformation (VSD)---
-# distsVSD <- dist(t(assay(vsd)))
-# mat <- as.matrix(distsVSD)
-# rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), 
-#                                         paste(condition, type, sep = " : "))
-# heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
-#           #main = "Correlation between Samples based on Variance Stabilizing Transformation")
-# dev.off()
-# 
-# 
-# ##---MDS plot using Euclidean distances 
-# #-rLog Transformation (rld)----
-# distsRL <- dist(t(assay(rld)))
-# DistMatrix <- as.matrix(distsRL)
-# mdsData <- data.frame(cmdscale(DistMatrix))
-# mds <- cbind(mdsData, as.data.frame(colData(rld)))
-# ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) 
-#   #ggtitle("MDS using Euclidean distance and rLog Transformation")
-# dev.off()
-# 
-# #-Variance Stablizing Transformation (vsd)----
-# distsVSD <- dist(t(assay(vsd)))
-# DistMatrix <- as.matrix(distsVSD)
-# mdsData <- data.frame(cmdscale(DistMatrix))
-# mds <- cbind(mdsData, as.data.frame(colData(vsd)))
-# ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
-#   #ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
-# dev.off()
-# 
-# 
-# ##---Poisson Distance Plot------------
-# #install.packages("PoiClaClu")
-# library("PoiClaClu")
-# poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
-# samplePoisDistMatrix <- as.matrix( poisd$dd )
-# mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
-# mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
-# ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3)
-#   #ggtitle("Poisson Distance Plot of the Read Counts")
-# dev.off()
-# 
+##---Comparing samples to each other for correlation patterning
+#-using rlog transformation (rld)---
+distsRL <- dist(t(assay(rld)))
+mat <- as.matrix(distsRL)
+rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered),
+                                        paste(condition, type, sep = " : "))
+heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
+          #main = "Correlation between Samples based on rLog Transformation")
+dev.off()
+
+#-using variance stabilizing transformation (VSD)---
+distsVSD <- dist(t(assay(vsd)))
+mat <- as.matrix(distsVSD)
+rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered),
+                                        paste(condition, type, sep = " : "))
+heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
+          #main = "Correlation between Samples based on Variance Stabilizing Transformation")
+dev.off()
+
+
+##---MDS plot using Euclidean distances
+#-rLog Transformation (rld)----
+distsRL <- dist(t(logTransCounts))
+DistMatrix <- as.matrix(distsRL)
+mdsData <- data.frame(cmdscale(DistMatrix))
+mds <- cbind(mdsData, as.data.frame(colData(rld)))
+mds$condition <- c("Control", "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
+  #ggtitle("MDS using Euclidean distance and rLog Transformation")
+dev.off()
+
+#-Variance Stablizing Transformation (vsd)----
+distsVSD <- dist(t(assay(vsd)))
+DistMatrix <- as.matrix(distsVSD)
+mdsData <- data.frame(cmdscale(DistMatrix))
+mds <- cbind(mdsData, as.data.frame(colData(vsd)))
+mds$condition <- c("Control", "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
+  #ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
+dev.off()
+
+
+##---Poisson Distance Plot------------
+#install.packages("PoiClaClu")
+library("PoiClaClu")
+poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
+samplePoisDistMatrix <- as.matrix( poisd$dd )
+mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
+mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
+mdsPois$condition <- c("Control", "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3)
+  #ggtitle("Poisson Distance Plot of the Read Counts")
+dev.off()
+
 # ##---Principle component analysis based on log2 normalized count matrix---
-# # Load factoextra for visualization
-# install.packages("factoextra")
-# library(factoextra)
-# 
-# # Compute PCA
-# OGPCAN <-prcomp(logTransCounts, center = T, scale = F, tol = 0)
-# #print(OGPCAN)
-# 
-# # Visualize eigenvalues (scree plot). 
-# #Show the percentage of variance explained by each principal component.
-# fviz_eig(OGPCAN)
-# 
-# # Graph of individuals. Individuals with a similar profile are grouped together
-# fviz_pca_ind(OGPCAN,
-#              col.ind = "cos2", # Color by the quality of representation
-#              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-#              repel = FALSE     # text overlapping
-# )
-# 
-# #Graph of variables. 
-# # Positive correlated variables point to the same side of the plot. 
-# # Negative correlated variables point to opposite sides of the graph.
-# fviz_pca_var(OGPCAN,
-#              col.var = "contrib", # Color by contributions to the PC
-#              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-#              repel = FALSE    # text overlapping
-# )
-# 
-# # Biplot of individuals and variables
-# fviz_pca_biplot(OGPCAN, repel = FALSE,
-#                 col.var = "#2E9FDF", # Variables color
-#                 col.ind = "#696969"  # Individuals color
-# )
-# 
-# # Eigenvalues
-# eig.val <- get_eigenvalue(OGPCAN)
-# eig.val
-# 
-# # Results for Variables
-# res.var <- get_pca_var(OGPCAN)
-# res.var$coord          # Coordinates
-# res.var$contrib        # Contributions to the PCs
-# res.var$cos2           # Quality of representation 
-# 
-# # Results for individuals
-# res.ind <- get_pca_ind(OGPCAN)
-# res.ind$coord          # Coordinates
-# res.ind$contrib        # Contributions to the PCs
-# res.ind$cos2           # Quality of representation 
-# 
-# # PCA plot replicates set up
-# OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
-# #print(OGPCAN_matrix)
-# OGPCAN_matrix$Condition <- c("Control", "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
-# #print(OGPCAN_matrix)
-# 
-# # Plot PCA
-# ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
-#   geom_point(size = 3) +
-#   theme(axis.text.x = element_text(size = 14, color = "black"),
-#         axis.title.x = element_text(size  = 16, face = "bold"),
-#         axis.text.y = element_text(color = "black", size = 14),
-#         axis.title.y = element_text(size = 16, face = "bold"),
-#         legend.title = element_text(size = 16, face = 'bold'),
-#         legend.text = element_text(size = 14)) +
-#   scale_color_discrete(name = "Sample") +
-#   xlab(paste0("PC1: ", sprintf("%.3f", eig.val$variance.percent[1]), "% variance")) +
-#   ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance"))
-# #ggtitle("Principle Component Analysis based on rlog transformation")
-# dev.off()
-# 
+# #NOTE: The groups are flipped, which is confusing. 
+# #The data appears to be the same, but the second PC becomes flipped for the two groups. 
+# #TO-DO: Look into WHY the graph is flipped
+
+
+# Load factoextra for visualization
+install.packages("factoextra")
+library(factoextra)
+
+# Compute PCA
+OGPCAN <- prcomp(logTransCounts, center = T, scale = F, tol = 0)
+#print(OGPCAN)
+
+# Visualize eigenvalues (scree plot).
+#Show the percentage of variance explained by each principal component.
+fviz_eig(OGPCAN)
+
+# Graph of individuals. Individuals with a similar profile are grouped together
+fviz_pca_ind(OGPCAN,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = FALSE     # text overlapping
+)
+
+#Graph of variables.
+# Positive correlated variables point to the same side of the plot.
+# Negative correlated variables point to opposite sides of the graph.
+fviz_pca_var(OGPCAN,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = FALSE    # text overlapping
+)
+
+# Biplot of individuals and variables
+fviz_pca_biplot(OGPCAN, repel = FALSE,
+                col.var = "#2E9FDF", # Variables color
+                col.ind = "#696969"  # Individuals color
+)
+
+# Eigenvalues
+eig.val <- get_eigenvalue(OGPCAN)
+eig.val
+
+# Results for Variables
+res.var <- get_pca_var(OGPCAN)
+res.var$coord          # Coordinates
+res.var$contrib        # Contributions to the PCs
+res.var$cos2           # Quality of representation
+
+# Results for individuals
+res.ind <- get_pca_ind(OGPCAN)
+res.ind$coord          # Coordinates
+res.ind$contrib        # Contributions to the PCs
+res.ind$cos2           # Quality of representation
+
+# PCA plot replicates set up
+OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
+#print(OGPCAN_matrix)
+OGPCAN_matrix$Condition <- c("Control", "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+#print(OGPCAN_matrix)
+
+# Plot PCA
+ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
+  geom_point(size = 3) +
+  theme(axis.text.x = element_text(size = 14, color = "black"),
+        axis.title.x = element_text(size  = 16, face = "bold"),
+        axis.text.y = element_text(color = "black", size = 14),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        legend.title = element_text(size = 16, face = 'bold'),
+        legend.text = element_text(size = 14)) +
+  scale_color_discrete(name = "Sample") +
+  xlab(paste0("PC1: ", sprintf("%.3f", eig.val$variance.percent[1]), "% variance")) +
+  ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance"))
+#ggtitle("Principle Component Analysis based on rlog transformation")
+dev.off()
+
 
 ##---Calculate differentially expressed genes from DESeq2---------------------
 res.TA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "TF"))
@@ -231,7 +239,7 @@ plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
 ##---Volcano Plots----------------------------------------------------------------
 #-Unlabelled plot----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, main="Volcano plot", xlim=c(-6,8),
+                      pch=10, xlim=c(-8,8),
                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                       ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -247,7 +255,7 @@ dev.off()
 
 #-Labeled plot (left side)----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, main="Volcano plot", xlim=c(-6,-1),
+                      pch=10, xlim=c(-8,-1),
                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                       ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -268,7 +276,7 @@ dev.off()
 
 #-Labeled plot (right side)----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, main="Volcano plot", xlim=c(1,7),
+                      pch=10, xlim=c(1,8),
                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
                       ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -309,13 +317,13 @@ res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, absFC > 1)
 
 #---Print out the filtered data as a text file---
 write.table(res.TA_W_M_filtered2, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_padj_20180831.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_padj_20180905.txt", 
             sep ="\t")
 write.table(res.TA_W_M_filtered3, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_padjfoldchange_20180831.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_padjfoldchange_20180905.txt", 
             sep ="\t")
 write.table(res.TA_W_M, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_20180820.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_20180905.txt", 
             sep = "\t")
 
 

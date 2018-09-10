@@ -1,4 +1,8 @@
-#
+## This script uses files from the second iteration of the tibialis anterior samples. 
+## The code (1) corrects the mislabeling of samples without modifying the file names and
+## (2) accounts for the removal of a mutant file that did not match the other mutant
+## files when analyzing the heatmap.
+
 ##---Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()
@@ -18,12 +22,12 @@ setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis
 directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/"
 
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory---
+#---sample group set up---
 sampleFiles <- dir(pattern = 'sorted')
 print(sampleFiles)
-
-sampleIdentifiers <- c("Control 1", "MCK 1", "Control 2", "MCK 2", "MCK 3", "MCK 4", "MCK 5")
-
-#---sample group set up---
+sampleIdentifiers <- c("C1", "M1", "C2", "M2", "M3", "M4")
+# sampleIdentifiers will label the samples as Control # and MCK # instead of the file name,
+# The second file was mislabeled, so that is why controls are broken up in the file order.
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
 print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
@@ -37,7 +41,7 @@ print(sampleTable)
 # #-is a better indicator of genotypes than the labeling provided.
 # #-DESeq2 object and rld arrary was generated first before this line to observe
 # #-the Foxo3 gene expression.
-sampleTable$condition <- c(rep("TF", 1), rep("TM",1), rep("TF", 1), rep("TM",4))
+sampleTable$condition <- c(rep("TF", 1), rep("TM",1), rep("TF", 1), rep("TM",3))
 print(sampleTable)
   
 
@@ -59,6 +63,8 @@ vsd <- varianceStabilizingTransformation(ddsHTSeqFiltered, blind = FALSE)
 #class(vsd)
 #head(colData(vsd),3)
 logTransCounts <- assay(rld)
+dists <-dist(t(logTransCounts))
+plot(hclust(dists))
 #head(logTransCounts)
 
 #---Singling out specific genes based on log counts---------------------
@@ -71,33 +77,36 @@ logTransCounts[grep("Foxo3", rownames(logTransCounts)), ]
 
 #---Comparing heatmaps of the three normalizing methods------------------
 library("RColorBrewer")
-install.packages("gplots")
+#install.packages("gplots")
 library("gplots")
 
 select <- order(rowMeans(counts(ddsHTSeqFiltered,normalized=TRUE)),decreasing=TRUE)[1:30]
 hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100)
 
-
+# #NOTE:The columns are organized by the array order and not by the sample name. 
+# #The array order is based on the file names, which were labeled incorrectly.
+# #The columns do not group controls and MCK groups properly.
+#
 #pdf("readcountsTranform.pdf")
-heatmap.2(counts(ddsHTSeqFiltered,normalized=TRUE)[select,], col = hmcol,
-          Rowv = FALSE, Colv = FALSE, scale="none",
-          dendrogram="none", trace="none", margin=c(10,6)) 
-          #main = "Read Counts Transformation")
-dev.off()
-
-#pdf("rlogTransform.pdf")
-heatmap.2(assay(rld)[select,], col = hmcol,
-          Rowv = FALSE, Colv = FALSE, scale="none",
-          dendrogram="none", trace="none", margin=c(10, 6))
-          #main = "rLog Transformation")
-dev.off()
-
-#pdf("VariStablizeTransform.pdf")
-heatmap.2(assay(vsd)[select,], col = hmcol,
-          Rowv = FALSE, Colv = FALSE, scale="none",
-          dendrogram="none", trace="none", margin=c(10, 6))
-          #main = "Variance Stablizing Transformation")
-dev.off()
+# heatmap.2(counts(ddsHTSeqFiltered,normalized=TRUE)[select,], col = hmcol,
+#           Rowv = FALSE, Colv = FALSE, scale="none",
+#           dendrogram="none", trace="none", margin=c(10,6))
+#           #main = "Read Counts Transformation")
+# dev.off()
+# 
+# #pdf("rlogTransform.pdf")
+# heatmap.2(assay(rld)[select,], col = hmcol,
+#           Rowv = FALSE, Colv = FALSE, scale="none",
+#           dendrogram="none", trace="none", margin=c(10, 6))
+#           #main = "rLog Transformation")
+# dev.off()
+# 
+# #pdf("VariStablizeTransform.pdf")
+# heatmap.2(assay(vsd)[select,], col = hmcol,
+#           Rowv = FALSE, Colv = FALSE, scale="none",
+#           dendrogram="none", trace="none", margin=c(10, 6))
+#           #main = "Variance Stablizing Transformation")
+# dev.off()
 
 
 ##---Comparing samples to each other for correlation patterning 
@@ -115,19 +124,24 @@ distsVSD <- dist(t(assay(vsd)))
 mat <- as.matrix(distsVSD)
 rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered), 
                                         paste(condition, type, sep = " : "))
-heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13), 
-          main = "Correlation between Samples based on Variance Stabilizing Transformation")
+heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
+          #main = "Correlation between Samples based on Variance Stabilizing Transformation")
 dev.off()
 
 
-##---MDS plot using Euclidean distances 
+# ##---MDS plot using Euclidean distances 
+# #NOTE: The graph is flipped. Controls should be on the left side.
+# #Code using the files that were renamed has the control group on the left-hand side.
+# #TO-DO: Figure out why the figure is flipped. What should I be seeing?
+
 #-rLog Transformation (rld)----
-distsRL <- dist(t(assay(rld)))
+distsRL <- dist(t(logTransCounts))
 DistMatrix <- as.matrix(distsRL)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(rld)))
-ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
-  ggtitle("MDS using Euclidean distance and rLog Transformation")
+mds$condition <- c("Control", "Mutant", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
+  #ggtitle("MDS using Euclidean distance and rLog Transformation")
 dev.off()
 
 #-Variance Stablizing Transformation (vsd)----
@@ -135,8 +149,9 @@ distsVSD <- dist(t(assay(vsd)))
 DistMatrix <- as.matrix(distsVSD)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
-ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
-  ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
+mds$condition <- c("Control", "Mutant", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
+ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
+  #ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
 dev.off()
 
 
@@ -147,13 +162,15 @@ poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
 samplePoisDistMatrix <- as.matrix( poisd$dd )
 mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
-ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3) + 
-  ggtitle("Poisson Distance Plot of the Read Counts")
+mdsPois$condition <- c("Control", "Mutant", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
+ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3)
+  #ggtitle("Poisson Distance Plot of the Read Counts")
 dev.off()
+
 
 ##---Principle component analysis based on log2 normalized count matrix---
 # Load factoextra for visualization
-install.packages("factoextra")
+#install.packages("factoextra")
 library(factoextra)
 
 # Compute PCA
@@ -164,12 +181,22 @@ OGPCAN <-prcomp(logTransCounts, center = T, scale = F, tol = 0)
 #Show the percentage of variance explained by each principal component.
 fviz_eig(OGPCAN)
 
+# Eigenvalues
+eig.val <- get_eigenvalue(OGPCAN)
+#eig.val
+
 # Graph of individuals. Individuals with a similar profile are grouped together
 fviz_pca_ind(OGPCAN,
              col.ind = "cos2", # Color by the quality of representation
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = FALSE     # text overlapping
 )
+
+# Results for individuals
+res.ind <- get_pca_ind(OGPCAN)
+res.ind$coord          # Coordinates
+res.ind$contrib        # Contributions to the PCs
+res.ind$cos2           # Quality of representation 
 
 #Graph of variables. 
 # Positive correlated variables point to the same side of the plot. 
@@ -179,33 +206,22 @@ fviz_pca_var(OGPCAN,
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = FALSE    # text overlapping
 )
-
-# Biplot of individuals and variables
-fviz_pca_biplot(OGPCAN, repel = FALSE,
-                col.var = "#2E9FDF", # Variables color
-                col.ind = "#696969"  # Individuals color
-)
-
-# Eigenvalues
-eig.val <- get_eigenvalue(OGPCAN)
-eig.val
-
 # Results for Variables
 res.var <- get_pca_var(OGPCAN)
 res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
-# Results for individuals
-res.ind <- get_pca_ind(OGPCAN)
-res.ind$coord          # Coordinates
-res.ind$contrib        # Contributions to the PCs
-res.ind$cos2           # Quality of representation 
+# Biplot of individuals and variables
+fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
+                col.ind = "#696969",  # Individuals color,
+                col.var = "y", # Variables color assignment
+                legend="null") + scale_color_gradient2(low="blue", high="red", midpoint = 0)
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Control", "MCK", "Control", "MCK", "MCK", "MCK", "MCK")
+OGPCAN_matrix$Condition <- c("Control", "Mutant", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -329,7 +345,7 @@ write.table(res.TA_W_M,
 
 
 ##---Heatmap of the most significant fold-change genes--------------
-install.packages("pheatmap")
+#install.packages("pheatmap")
 library("pheatmap")
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
@@ -337,7 +353,7 @@ Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = F)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
 dev.off()
 
 
