@@ -257,69 +257,75 @@ plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
 #-Unlabelled plot----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
                        pch=10, main="Volcano plot", xlim=c(-6,8),
-                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
+                       xlab=expression(paste("log"[2]*Delta,"FC (M/C)")), 
                        ylab=expression(paste("-log"[10]*"(p-value)"))))
 
 #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
 with(subset(res.TA_W_M, padj<0.05), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+     points(log2FoldChange, -log10(pvalue), pch=20, col="light grey"))
 with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-
-dev.off()
-
-#-Labeled plot (left side)----
-with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                       pch=10, main="Volcano plot", xlim=c(-6,-1),
-                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
-                       ylab=expression(paste("-log"[10]*"(p-value)"))))
-
-#-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-with(subset(res.TA_W_M, padj<0.05), 
+     points(log2FoldChange, -log10(pvalue), pch=20, col="dark grey"))
+with(subset(res.TA_W_M, padj<0.05 & log2FoldChange >1), 
+     points(log2FoldChange, -log10(pvalue), pch=20, col="yellow"))
+with(subset(res.TA_W_M, padj<0.05 & log2FoldChange < (-1)), 
      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
 
 #-Label points with the textxy function from the calibrate plot
-with(subset(res.TA_W_M), 
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
-#Need to click on graphic to label the outliers
+with(subset(res.TA_W_M),
+     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6))
 
 dev.off()
 
-#-Labeled plot (right side)----
-with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                       pch=10, main="Volcano plot", xlim=c(1,7),
-                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
-                       ylab=expression(paste("-log"[10]*"(p-value)"))))
-
-#-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-with(subset(res.TA_W_M, padj<0.05), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-
-#-Label points with the textxy function from the calibrate plot
-with(subset(res.TA_W_M), 
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
-
-dev.off()
+# #-Labeled plot (left side)----
+# with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
+#                        pch=10, main="Volcano plot", xlim=c(-6,-1),
+#                        xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
+#                        ylab=expression(paste("-log"[10]*"(p-value)"))))
+# 
+# #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
+# with(subset(res.TA_W_M, padj<0.05), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+# with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+# with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+# 
+# #-Label points with the textxy function from the calibrate plot
+# with(subset(res.TA_W_M), 
+#      identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
+# #Need to click on graphic to label the outliers
+# 
+# dev.off()
+# 
+# #-Labeled plot (right side)----
+# with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
+#                        pch=10, main="Volcano plot", xlim=c(1,7),
+#                        xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
+#                        ylab=expression(paste("-log"[10]*"(p-value)"))))
+# 
+# #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
+# with(subset(res.TA_W_M, padj<0.05), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+# with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+# with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+# 
+# #-Label points with the textxy function from the calibrate plot
+# with(subset(res.TA_W_M), 
+#      identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
+# 
+# dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
 #-Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
 res.TA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-table(res.TA_W_M.05$padj < 0.05)
+#table(res.TA_W_M.05$padj < 0.05)
 
 #-Calculate differentially expressed genes from DESeq2 object based on log fold change equal to 0.5 (2^0.5)
 res.TA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-table(res.TA_W_MLFC1$padj < 0.05)
+#table(res.TA_W_MLFC1$padj < 0.05)
 
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
@@ -353,7 +359,7 @@ Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = F)
 dev.off()
 
 

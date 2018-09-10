@@ -264,11 +264,17 @@ with(res.SOL_W_M, plot(log2FoldChange, -log10(pvalue),
 
 #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
 with(subset(res.SOL_W_M, padj<0.05), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+     points(log2FoldChange, -log10(pvalue), pch=20, col="light grey"))
 with(subset(res.SOL_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.SOL_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+     points(log2FoldChange, -log10(pvalue), pch=20, col="dark grey"))
+with(subset(res.SOL_W_M, padj<0.05 & log2FoldChange>1), 
+     points(log2FoldChange, -log10(pvalue), pch=20, col="yellow"))
+with(subset(res.SOL_W_M, padj<0.05 & (log2FoldChange) < (-1)), 
+     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+
+#-Label points with the textxy function from the calibrate plot
+with(subset(res.SOL_W_M),
+     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.SOL_W_M), cex=0.5))
 
 dev.off()
 

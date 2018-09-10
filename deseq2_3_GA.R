@@ -1,4 +1,6 @@
-## This script uses files that were renamed after identifying mislabeling of gastrocnemius
+## This script uses files that were renamed after 
+## identifying mislabeling of gastrocnemius
+
 ##---Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()

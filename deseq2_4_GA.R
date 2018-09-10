@@ -1,7 +1,10 @@
-## This script uses files that were (1) renamed after identifying mislabeling of gastrocnemius
-## and (2) removes one of the controls that paired with the other controls in the biplot; 
-## however, the heatmap and clustering of the rlog transformation reads showed that the file 
-## was more characteristic of the mutant files.
+## This script uses files that were (1) renamed after 
+## identifying mislabeling of gastrocnemius and (2) 
+## removes one of the controls that paired with the 
+## other controls in the biplot; however, the heatmap 
+## and clustering of the rlog transformation reads 
+## showed that the file was more characteristic of 
+## the mutant files.
 
 ##---Clear data and load packages-----------------------
 rm(list = ls())
@@ -61,6 +64,8 @@ vsd <- varianceStabilizingTransformation(ddsHTSeqFiltered, blind = FALSE)
 #class(vsd)
 #head(colData(vsd),3)
 logTransCounts <- assay(rld)
+
+#-Plot the read count after rlog transformation
 dists <-dist(t(logTransCounts))
 plot(hclust(dists))
 #head(logTransCounts)
