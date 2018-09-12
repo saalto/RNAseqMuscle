@@ -69,7 +69,7 @@ logTransCounts[grep("Pitx2", rownames(logTransCounts)), ]
 #Wildtype and mutant samples have similar counts
 logTransCounts[grep("Foxo3", rownames(logTransCounts)), ] 
 #Mutant samples will have higher counts than wildtypes
-
+logTransCounts[grep("Lars2", rownames(logTransCounts)), ] 
 
 #---Comparing heatmaps of the three normalizing methods------------------
 library("RColorBrewer")
@@ -216,7 +216,7 @@ OGPCAN_matrix$Condition <- c("Control", "Control", "Control", "MCK", "MCK")
 
 # Plot PCA
 ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
-  geom_point(size = 3) +
+  geom_point(size = 3) + label
   theme(axis.text.x = element_text(size = 14, color = "black"),
         axis.title.x = element_text(size  = 16, face = "bold"),
         axis.text.y = element_text(color = "black", size = 14),

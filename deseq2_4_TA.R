@@ -20,8 +20,7 @@ directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/t
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
 print(sampleFiles)
-
-sampleIdentifiers <- c("Control 1", "Control 2","MCK 1", "MCK 2", "MCK 3", "MCK 4", "MCK 5")
+sampleIdentifiers <- c("C1", "C2","M1", "M2", "M3", "M4")
 
 #---sample group set up---
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
@@ -58,6 +57,8 @@ logTransCounts[grep("Pitx2", rownames(logTransCounts)), ]
 #Wildtype and mutant samples have similar counts
 logTransCounts[grep("Foxo3", rownames(logTransCounts)), ] 
 #Mutant samples will have higher counts than wildtypes
+logTransCounts[grep("Lars2", rownames(logTransCounts)), ] 
+#Mutants sample have higher counts than controls
 
 
 #---Comparing heatmaps of the three normalizing methods------------------
@@ -152,7 +153,7 @@ dev.off()
 
 
 # Load factoextra for visualization
-install.packages("factoextra")
+#install.packages("factoextra")
 library(factoextra)
 
 # Compute PCA
@@ -163,12 +164,22 @@ OGPCAN <- prcomp(logTransCounts, center = T, scale = F, tol = 0)
 #Show the percentage of variance explained by each principal component.
 fviz_eig(OGPCAN)
 
+# Eigenvalues
+eig.val <- get_eigenvalue(OGPCAN)
+#eig.val
+
 # Graph of individuals. Individuals with a similar profile are grouped together
 fviz_pca_ind(OGPCAN,
              col.ind = "cos2", # Color by the quality of representation
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = FALSE     # text overlapping
 )
+
+# Results for individuals
+res.ind <- get_pca_ind(OGPCAN)
+res.ind$coord          # Coordinates
+res.ind$contrib        # Contributions to the PCs
+res.ind$cos2           # Quality of representation
 
 #Graph of variables.
 # Positive correlated variables point to the same side of the plot.
@@ -179,32 +190,22 @@ fviz_pca_var(OGPCAN,
              repel = FALSE    # text overlapping
 )
 
-# Biplot of individuals and variables
-fviz_pca_biplot(OGPCAN, repel = FALSE,
-                col.var = "#2E9FDF", # Variables color
-                col.ind = "#696969"  # Individuals color
-)
-
-# Eigenvalues
-eig.val <- get_eigenvalue(OGPCAN)
-eig.val
-
 # Results for Variables
 res.var <- get_pca_var(OGPCAN)
 res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation
 
-# Results for individuals
-res.ind <- get_pca_ind(OGPCAN)
-res.ind$coord          # Coordinates
-res.ind$contrib        # Contributions to the PCs
-res.ind$cos2           # Quality of representation
+# Biplot of individuals and variables
+fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
+                col.ind = "#696969",  # Individuals color,
+                col.var = "y", # Variables color assignment
+                legend="null") + scale_color_gradient2(low="blue", high="red", midpoint = 0)
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Control", "Control", "MCK", "MCK", "MCK", "MCK", "MCK")
+OGPCAN_matrix$Condition <- c("Control", "Control", "Mutant", "Mutant", "Mutant")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -237,72 +238,77 @@ plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
 
 
 ##---Volcano Plots----------------------------------------------------------------
-#-Unlabelled plot----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, xlim=c(-8,8),
-                      xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
+                      pch=10, main="Volcano plot", xlim=c(-6,8),
+                      xlab=expression(paste("log"[2]*Delta,"FC (M/C)")), 
                       ylab=expression(paste("-log"[10]*"(p-value)"))))
 
 #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
 with(subset(res.TA_W_M, padj<0.05), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+     points(log2FoldChange, -log10(pvalue), pch=20, col="light grey"))
 with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-
-dev.off()
-
-#-Labeled plot (left side)----
-with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, xlim=c(-8,-1),
-                      xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
-                      ylab=expression(paste("-log"[10]*"(p-value)"))))
-
-#-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-with(subset(res.TA_W_M, padj<0.05), 
+     points(log2FoldChange, -log10(pvalue), pch=20, col="dark grey"))
+with(subset(res.TA_W_M, padj<0.05 & log2FoldChange >1), 
+     points(log2FoldChange, -log10(pvalue), pch=20, col="yellow"))
+with(subset(res.TA_W_M, padj<0.05 & log2FoldChange < (-1)), 
      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
 
 #-Label points with the textxy function from the calibrate plot
-with(subset(res.TA_W_M), 
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
-#Need to click on graphic to label the outliers
+with(subset(res.TA_W_M),
+     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6))
 
 dev.off()
 
-#-Labeled plot (right side)----
-with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, xlim=c(1,8),
-                      xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
-                      ylab=expression(paste("-log"[10]*"(p-value)"))))
-
-#-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-with(subset(res.TA_W_M, padj<0.05), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-
-#-Label points with the textxy function from the calibrate plot
-with(subset(res.TA_W_M), 
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
-
-dev.off()
+# #-Labeled plot (left side)----
+# with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
+#                       pch=10, xlim=c(-8,-1),
+#                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
+#                       ylab=expression(paste("-log"[10]*"(p-value)"))))
+# 
+# #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
+# with(subset(res.TA_W_M, padj<0.05), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+# with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+# with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+# 
+# #-Label points with the textxy function from the calibrate plot
+# with(subset(res.TA_W_M), 
+#      identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
+# #Need to click on graphic to label the outliers
+# 
+# dev.off()
+# 
+# #-Labeled plot (right side)----
+# with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
+#                       pch=10, xlim=c(1,8),
+#                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
+#                       ylab=expression(paste("-log"[10]*"(p-value)"))))
+# 
+# #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
+# with(subset(res.TA_W_M, padj<0.05), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
+# with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
+# with(subset(res.TA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
+#      points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
+# 
+# #-Label points with the textxy function from the calibrate plot
+# with(subset(res.TA_W_M), 
+#      identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6)) 
+# 
+# dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
 #-Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
 res.TA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-table(res.TA_W_M.05$padj < 0.05)
+#table(res.TA_W_M.05$padj < 0.05)
 
 #-Calculate differentially expressed genes from DESeq2 object based on log fold change equal to 0.5 (2^0.5)
 res.TA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-table(res.TA_W_MLFC1$padj < 0.05)
+#table(res.TA_W_MLFC1$padj < 0.05)
 
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
@@ -336,7 +342,17 @@ Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = F)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+
+dev.off()
+
+# Heatmap of the significant (padj<0.05) DE genes based on VSD
+Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
+Mat <- Mat - rowMeans(Mat)
+df <- as.data.frame(colData(vsd)[,c("condition")])
+pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(100), 
+         show_rownames = F, show_colnames = T)
+
 dev.off()
 
 

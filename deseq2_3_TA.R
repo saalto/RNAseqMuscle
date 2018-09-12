@@ -1,7 +1,5 @@
 ## This script uses files from the second iteration of the tibialis anterior samples. 
-## The code (1) corrects the mislabeling of samples without modifying the file names and
-## (2) accounts for the removal of a mutant file that did not match the other mutant
-## files when analyzing the heatmap.
+## The code (1) corrects the mislabeling of samples without modifying the file names
 
 ##---Clear data and load packages-----------------------
 rm(list = ls())
@@ -25,7 +23,7 @@ directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/t
 #---sample group set up---
 sampleFiles <- dir(pattern = 'sorted')
 print(sampleFiles)
-sampleIdentifiers <- c("C1", "M1", "C2", "M2", "M3", "M4")
+sampleIdentifiers <- c("C1", "M1", "C2", "M2", "M3", "M4", "M5")
 # sampleIdentifiers will label the samples as Control # and MCK # instead of the file name,
 # The second file was mislabeled, so that is why controls are broken up in the file order.
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
@@ -41,7 +39,7 @@ print(sampleTable)
 # #-is a better indicator of genotypes than the labeling provided.
 # #-DESeq2 object and rld arrary was generated first before this line to observe
 # #-the Foxo3 gene expression.
-sampleTable$condition <- c(rep("TF", 1), rep("TM",1), rep("TF", 1), rep("TM",3))
+sampleTable$condition <- c(rep("TF", 1), rep("TM",1), rep("TF", 1), rep("TM",4))
 print(sampleTable)
   
 
@@ -254,7 +252,6 @@ plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
 
 
 ##---Volcano Plots----------------------------------------------------------------
-#-Unlabelled plot----
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
                        pch=10, main="Volcano plot", xlim=c(-6,8),
                        xlab=expression(paste("log"[2]*Delta,"FC (M/C)")), 
@@ -359,7 +356,17 @@ Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = F)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+
+dev.off()
+
+# Heatmap of the significant (padj<0.05) DE genes based on VSD
+Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
+Mat <- Mat - rowMeans(Mat)
+df <- as.data.frame(colData(vsd)[,c("condition")])
+pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
+        show_rownames = F, show_colnames = T)
+
 dev.off()
 
 
