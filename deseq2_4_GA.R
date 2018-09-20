@@ -9,6 +9,7 @@
 ##---Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()
+
 source('https://bioconductor.org/biocLite.R')
 library("DESeq2")
 library("ggplot2")
@@ -26,17 +27,17 @@ directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/g
 
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
-print(sampleFiles)
+#print(sampleFiles)
 sampleIdentifiers <- c("C1", "C2", "M1", "M2")
 
 #---sample group set up---
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
-print(ConditionMatch)
+#print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
-print(sampleConditions)
+#print(sampleConditions)
 sampleTable <- data.frame(sampleName = sampleIdentifiers, fileName = sampleFiles, 
                           condition = sampleConditions)
-print(sampleTable)
+#print(sampleTable)
 
 # #-reassignment of the files based on the Foxo3 gene expression patterning,
 # #-which is lower in the flox/Z mice than the MCK mice. this gene expression 
@@ -94,6 +95,7 @@ heatmap.2(counts(ddsHTSeqFiltered,normalized=TRUE)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10,6), 
           main = "Read Counts Transformation")
+
 dev.off()
 
 #pdf("rlogTransform.pdf")
@@ -101,6 +103,7 @@ heatmap.2(assay(rld)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10, 6), 
           main = "rLog Transformation")
+
 dev.off()
 
 #pdf("VariStablizeTransform.pdf")
@@ -108,6 +111,7 @@ heatmap.2(assay(vsd)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10, 6), 
           main = "Variance Stablizing Transformation")
+
 dev.off()
 
 
@@ -139,7 +143,7 @@ distsRL <- dist(t(assay(rld)))
 DistMatrix <- as.matrix(distsRL)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(rld)))
-mds$condition <- c("Control", "Control", "Control", "MCK", "MCK")
+mds$condition <- c("Control", "Control", "Mutant", "Mutant")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
   ggtitle("MDS using Euclidean distance and rLog Transformation")
 
@@ -150,7 +154,7 @@ distsVSD <- dist(t(assay(vsd)))
 DistMatrix <- as.matrix(distsVSD)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
-mds$condition <- c("Control", "Control", "Control", "MCK", "MCK")
+mds$condition <- c("Control", "Control", "Mutant", "Mutant")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
   ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
 
@@ -160,11 +164,12 @@ dev.off()
 ##---Poisson Distance Plot------------
 #install.packages("PoiClaClu")
 library("PoiClaClu")
+
 poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
 samplePoisDistMatrix <- as.matrix( poisd$dd )
 mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
-mdsPois$condition <- c("Control", "Control", "Control", "MCK", "MCK")
+mdsPois$condition <- c("Control", "Control", "Mutant", "Mutant")
 ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3) + 
   ggtitle("Poisson Distance Plot of the Read Counts")
 
@@ -186,7 +191,13 @@ fviz_eig(OGPCAN)
 
 # Eigenvalues
 eig.val <- get_eigenvalue(OGPCAN)
-#eig.val
+#head(eig.val)
+
+# Results for individuals
+res.ind <- get_pca_ind(OGPCAN)
+head(res.ind$coord)         # Coordinates
+head(res.ind$contrib)       # Contributions to the PCs
+head(res.ind$cos2)          # Quality of representation 
 
 # Graph of individuals. 
 # Individuals with a similar profile are grouped together
@@ -196,36 +207,35 @@ fviz_pca_ind(OGPCAN,
              repel = FALSE     # text overlapping
 )
 
-# Results for individuals
-res.ind <- get_pca_ind(OGPCAN)
-res.ind$coord          # Coordinates
-res.ind$contrib        # Contributions to the PCs
-res.ind$cos2           # Quality of representation 
-
-#Graph of variables. 
-# Positive correlated variables point to the same side of the plot. 
-# Negative correlated variables point to opposite sides of the graph.
-fviz_pca_var(OGPCAN,
-             col.var = "contrib", # Color by contributions to the PC
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = FALSE    # text overlapping
-)
 # Results for Variables
 res.var <- get_pca_var(OGPCAN)
 res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
+grp <- c("Control", "Control", "Mutant", "Mutant")
+
+#Graph of variables. 
+# Positive correlated variables point to the same side of the plot. 
+# Negative correlated variables point to opposite sides of the graph.
+fviz_pca_var(OGPCAN,
+             col.var = grp, # Color by contributions to the PC
+             palette = c("#FC4E07", "#00AFBB"),
+             repel = TRUE    # text overlapping
+)
+
 # Biplot of individuals and variables
 fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.ind = "#696969",  # Individuals color,
-                col.var = "y", 
-                legend="null") + scale_color_gradient2(low="blue", high="red", midpoint = 0)
+                col.var = grp, 
+                legend.title="Gastrocnemius Sample", 
+                title = NULL,
+                palette = c("#00AFBB", "#FC4E07"))
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Control", "Control", "MCK", "MCK")
+OGPCAN_matrix$Condition <- c("Control", "Control", "Mutant", "Mutant")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -241,6 +251,7 @@ ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
   xlab(paste0("PC1: ", sprintf("%.3f", eig.val$variance.percent[1]), "% variance")) +
   ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance"))
 #ggtitle("Principle Component Analysis based on rlog transformation")
+
 dev.off()
 
 
@@ -260,7 +271,7 @@ plotMA.GA_W_M <- plotMA(res.GA_W_M, ylim=c(-2,2))
 ##---Volcano Plots----------------------------------------------------------------
 #-Unlabelled plot----
 with(res.GA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, xlim=c(-5,7),
+                      pch=10, xlim=c(-6,8),
                       xlab=expression(paste("log"[2]*Delta,"FC (M/C)")), 
                       ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -280,49 +291,6 @@ with(subset(res.GA_W_M),
               cex=0.6))
 
 dev.off()
-
-# #-Labeled plot (left side)----
-# with(res.GA_W_M, plot(log2FoldChange, -log10(pvalue), 
-#                       pch=10, main="Volcano plot", xlim=c(-5,-1),
-#                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
-#                       ylab=expression(paste("-log"[10]*"(p-value)"))))
-# 
-# #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-# with(subset(res.GA_W_M, padj<0.05), 
-#      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-# with(subset(res.GA_W_M, abs(log2FoldChange)>1), 
-#      points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-# with(subset(res.GA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-#      points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-# 
-# #-Label points with the textxy function from the calibrate plot
-# with(subset(res.GA_W_M), 
-#      identify(log2FoldChange, -log10(pvalue), labels=rownames(res.GA_W_M), 
-#               cex=0.6)) 
-# #Need to click on graphic to label the outliers
-# 
-# dev.off()
-# 
-# #-Labeled plot (right side)----
-# with(res.GA_W_M, plot(log2FoldChange, -log10(pvalue), 
-#                       pch=10, main="Volcano plot", xlim=c(1,7),
-#                       xlab=expression(paste("log"[2]*Delta,"FC (WT/MUT)")), 
-#                       ylab=expression(paste("-log"[10]*"(p-value)"))))
-# 
-# #-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-# with(subset(res.GA_W_M, padj<0.05), 
-#      points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-# with(subset(res.GA_W_M, abs(log2FoldChange)>1), 
-#      points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-# with(subset(res.GA_W_M, padj<0.05 & abs(log2FoldChange)>1), 
-#      points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-# 
-# #-Label points with the textxy function from the calibrate plot
-# with(subset(res.GA_W_M), 
-#      identify(log2FoldChange, -log10(pvalue), labels=rownames(res.GA_W_M), 
-#               cex=0.6)) 
-# 
-# dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
@@ -349,13 +317,13 @@ res.GA_W_M_filtered3 <- subset(res.GA_W_M_filtered2, absFC > 1)
 
 #---Print out the filtered data as a text file---
 write.table(res.GA_W_M_filtered2, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.GA_W_M_filtered_padj_20180831.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.GA_W_M_filtered_padj_20180918.txt", 
             sep ="\t")
 write.table(res.GA_W_M_filtered3, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.GA_W_M_filtered_padjfoldchange_20180831.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.GA_W_M_filtered_padjfoldchange_20180918.txt", 
             sep ="\t")
 write.table(res.GA_W_M, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.GA_W_M_20180820.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.GA_W_M_20180918.txt", 
             sep = "\t")
 
 
@@ -376,7 +344,7 @@ dev.off()
 Mat <- assay(vsd)[order(res.GA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
+pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
          show_rownames = F, show_colnames = T)
 
 dev.off()

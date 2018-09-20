@@ -1,7 +1,7 @@
-## This script uses files that were (1) renamed after identifying 
-## mislabeling of tibialis anterior samples.and (2) removal of one 
-## file that the heatmap showed confusing expression levels when 
-## compared to the other mutants.
+## This script uses files from gastrocnemius, soleus, and tibialis
+## that were (1) renamed after identifying mislabeled samples, 
+## (2) removed if expression levels were confusing compared to 
+## the other mutants.
 
 ##---Clear data and load packages-----------------------
 rm(list = ls())
@@ -15,22 +15,22 @@ library("pamr")
 library("MCL")
 
 ##---Set working directory to iteration 2---
-setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/renamed_files_2")
-directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/tibialis/renamed_files_2"
+setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/combined/")
+directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/combined/"
 
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
-#print(sampleFiles)
-sampleIdentifiers <- c("C1", "C2","M1", "M2", "M3", "M4")
+print(sampleFiles)
+sampleIdentifiers <- c("CG1", "CG2", "MG1", "MG2", "CS1", "CS2", "CS3", "CS4", "CS5", "CS6", "MS1", "MS2", "MS3", "MS4", "MS5", "CT1", "CT2","MT1", "MT2", "MT3", "MT4")
 
 #---sample group set up---
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
-#print(ConditionMatch)
+print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
-#print(sampleConditions)
+print(sampleConditions)
 sampleTable <- data.frame(sampleName = sampleIdentifiers, fileName = sampleFiles, 
                           condition = sampleConditions)
-#print(sampleTable)
+print(sampleTable)
 
 ##---Calculate DESeq2 from HTSeq count tables-------------
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, 
@@ -80,7 +80,6 @@ heatmap.2(counts(ddsHTSeqFiltered,normalized=TRUE)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10,6), 
           main = "Read Counts Transformation")
-
 dev.off()
 
 #pdf("rlogTransform.pdf")
@@ -88,7 +87,6 @@ heatmap.2(assay(rld)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10, 6), 
           main = "rLog Transformation")
-
 dev.off()
 
 #pdf("VariStablizeTransform.pdf")
@@ -96,7 +94,6 @@ heatmap.2(assay(vsd)[select,], col = hmcol,
           Rowv = FALSE, Colv = FALSE, scale="none",
           dendrogram="none", trace="none", margin=c(10, 6), 
           main = "Variance Stablizing Transformation")
-
 dev.off()
 
 
@@ -107,8 +104,7 @@ mat <- as.matrix(distsRL)
 rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered),
                                         paste(condition, type, sep = " : "))
 heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
-          #main = "Correlation between Samples based on rLog Transformation")
-
+#main = "Correlation between Samples based on rLog Transformation")
 dev.off()
 
 #-using variance stabilizing transformation (VSD)---
@@ -117,8 +113,7 @@ mat <- as.matrix(distsVSD)
 rownames(mat) <- colnames(mat) <-  with(colData(ddsHTSeqFiltered),
                                         paste(condition, type, sep = " : "))
 heatmap.2(mat, trace = "none", col = rev(hmcol), margins = c(13,13))
-          #main = "Correlation between Samples based on Variance Stabilizing Transformation")
-
+#main = "Correlation between Samples based on Variance Stabilizing Transformation")
 dev.off()
 
 
@@ -130,8 +125,7 @@ mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(rld)))
 mds$condition <- c("Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
-  #ggtitle("MDS using Euclidean distance and rLog Transformation")
-
+#ggtitle("MDS using Euclidean distance and rLog Transformation")
 dev.off()
 
 #-Variance Stablizing Transformation (vsd)----
@@ -141,8 +135,7 @@ mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
 mds$condition <- c("Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3)
-  #ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
-
+#ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
 dev.off()
 
 
@@ -155,8 +148,7 @@ mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
 mdsPois$condition <- c("Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
 ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3)
-  #ggtitle("Poisson Distance Plot of the Read Counts")
-
+#ggtitle("Poisson Distance Plot of the Read Counts")
 dev.off()
 
 
@@ -196,14 +188,19 @@ res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation
 
-grp <- c("Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
+grp <- c("GA Control", "GA Control", "GA Mutant", "GA Mutant", 
+         "SOL Control", "SOL Control", "SOL Control", "SOL Control",
+         "SOL Control", "SOL Control", "SOL Mutant", "SOL Mutant",
+         "SOL Mutant", "SOL Mutant","SOL Mutant", "TA Control",
+         "TA Control", "TA Mutant","TA Mutant","TA Mutant","TA Mutant")
 
 #Graph of variables.
 # Positive correlated variables point to the same side of the plot.
 # Negative correlated variables point to opposite sides of the graph.
 fviz_pca_var(OGPCAN,
              col.var = grp, # Color by contributions to the PC
-             palette = c("#FC4E07", "#00AFBB"),
+             palette = c("#FC4E07", "#00AFBB", "#FC4E07", "#00AFBB", 
+                         "#FC4E07", "#00AFBB", "#00AFBB"),
              repel = TRUE    # text overlapping
 )
 
@@ -211,14 +208,19 @@ fviz_pca_var(OGPCAN,
 fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.ind = "#696969",  # Individuals color,
                 col.var = grp, 
-                legend.title="Tibialis Sample", 
+                legend.title="Tissue Sample", 
                 title = NULL,
-                palette = c("#00AFBB", "#FC4E07"))
+                palette = c("#FC4E07", "#00AFBB", "#FC4E07", "#00AFBB", 
+                            "#FC4E07", "#00AFBB", "#00AFBB"))
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
+OGPCAN_matrix$Condition <- c("GA Control", "GA Control", "GA Mutant", "GA Mutant", 
+                             "SOL Control", "SOL Control", "SOL Control", "SOL Control",
+                             "SOL Control", "SOL Control", "SOL Mutant", "SOL Mutant",
+                             "SOL Mutant", "SOL Mutant","SOL Mutant", "TA Control",
+                             "TA Control", "TA Mutant","TA Mutant","TA Mutant","TA Mutant")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -232,120 +234,10 @@ ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
         legend.text = element_text(size = 14)) +
   scale_color_discrete(name = "Sample") +
   xlab(paste0("PC1: ", sprintf("%.3f", eig.val$variance.percent[1]), "% variance")) +
-  ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance"))
+  ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance")) +
+  stat_ellipse(type= "t")+ 
+  stat_ellipse(type="norm", linetype = 2)
 #ggtitle("Principle Component Analysis based on rlog transformation")
-
-dev.off()
-
-
-##---Calculate differentially expressed genes from DESeq2---------------------
-res.TA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "TF"))
-#summary(res.TA_W_M)
-
-
-##---MA plot from results---------------------------------------
-#-Bland-Altman plot that visualizes the differences between measurements 
-# taken in two samples, by transforming the data onto M (log ratio) and 
-# A (mean average) scales, then plotting these values
-plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
-
-
-##---Volcano Plots----------------------------------------------------------------
-with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10,
-                      xlab=expression(paste("log"[2]*Delta,"FC (M/C)")), 
-                      ylab=expression(paste("-log"[10]*"(p-value)"))))
-
-#-Add colored points: blue if padj<0.05, red if log2FC>1, green if both
-with(subset(res.TA_W_M, padj<0.05), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="light grey"))
-with(subset(res.TA_W_M, abs(log2FoldChange)>1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="dark grey"))
-with(subset(res.TA_W_M, padj<0.05 & log2FoldChange >1), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="yellow"))
-with(subset(res.TA_W_M, padj<0.05 & log2FoldChange < (-1)), 
-     points(log2FoldChange, -log10(pvalue), pch=20, col="blue"))
-
-#-Label points with the textxy function from the calibrate plot
-with(subset(res.TA_W_M),
-     identify(log2FoldChange, -log10(pvalue), labels=rownames(res.TA_W_M), cex=0.6))
-
-dev.off()
-
-
-##---Filtering the Results (DE genes) into tables---
-#-Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
-res.TA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-#table(res.TA_W_M.05$padj < 0.05)
-
-#-Calculate differentially expressed genes from DESeq2 object based on log fold change equal to 0.5 (2^0.5)
-res.TA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-#table(res.TA_W_MLFC1$padj < 0.05)
-
-#-Subset data based on (1) adjusted p-value less than 0.05 AND 
-# (2) absolute value of the log2 fold change greater than 0.5
-res.TA_W_M_filtered2 <- subset(res.TA_W_M, padj < 0.05)
-res.TA_W_M_filtered2$absFC <- abs(res.TA_W_M_filtered2$log2FoldChange)
-#head(res.TA_W_M_filtered2)
-#dim(res.TA_W_M_filtered2)
-
-res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, absFC > 1)
-#head(res.TA_W_M_filtered3)
-#dim(res.TA_W_M_filtered3)
-
-#---Print out the filtered data as a text file---
-write.table(res.TA_W_M_filtered2, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_padj_20180918.txt", 
-            sep ="\t")
-write.table(res.TA_W_M_filtered3, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_padjfoldchange_20180918.txt", 
-            sep ="\t")
-write.table(res.TA_W_M, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_20180918.txt", 
-            sep = "\t")
-
-
-##---Heatmap of the most significant fold-change genes--------------
-#install.packages("pheatmap")
-library("grid")
-library("pheatmap")
-
-# Edit body of pheatmap:::draw_colnames, customizing it to your liking
-draw_colnames_45 <- function (coln, ...) {
-  m = length(coln)
-  x = (1:m)/m - 1/2/m
-  grid.text(coln, x = x, y = unit(0.96, "npc"), vjust = .5, 
-            hjust = 1, rot = 45, gp = gpar(...)) ## Was 'hjust=0' and 'rot=270'
-}
-
-# For pheatmap_1.0.8 and later:
-draw_colnames_45 <- function (coln, gaps, ...) {
-  coord = pheatmap:::find_coordinates(length(coln), gaps)
-  x = coord$coord - 0.5 * coord$size
-  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 0.5, 
-                 hjust = 1, rot = 45, gp = gpar(...))
-  return(res)}
-
-# 'Overwrite' default draw_colnames with your own version 
-assignInNamespace(x="draw_colnames", value="draw_colnames_45",
-                  ns=asNamespace("pheatmap"))
-
-# Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
-Mat <- Mat - rowMeans(Mat)
-df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff33"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
-
-dev.off()
-
-# # Heatmap of the significant (padj<0.05) DE genes based on VSD
-# Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
-# Mat <- Mat - rowMeans(Mat)
-# df <- as.data.frame(colData(vsd)[,c("condition")])
-# 
-# pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
-#          show_rownames = F, show_colnames = T)
 
 
 ##---Clear data and delete figure-----------------------

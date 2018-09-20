@@ -1,6 +1,7 @@
 #-------Clear data and load packages-----------------------
 rm(list = ls())
 dev.off()
+
 source('https://bioconductor.org/biocLite.R')
 library("DESeq2")
 library("ggplot2")
@@ -14,18 +15,20 @@ directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/m
 
 #-----Set up DESeq2 data, based on names of HTSeq counts in working directory-----
 sampleFiles <- dir(pattern = 'sorted')
-print(sampleFiles)
+#print(sampleFiles)
+
+sampleIdentifier <- c("G1", "G2", "S1", "S2", "S3", "S4", "S5")
 #sample group set up
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
-print(ConditionMatch)
+#print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
-print(sampleConditions)
-sampleTable <- data.frame(sampleName = sampleFiles, fileName = sampleFiles, condition = sampleConditions)
-print(sampleTable)
+#print(sampleConditions)
+sampleTable <- data.frame(sampleName = sampleIdentifier, fileName = sampleFiles, condition = sampleConditions)
+#print(sampleTable)
 
 #-------Calculate DESeq2 from HTSeq count tables-------------
 ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = ~ condition)
-print(ddsHTSeq)
+#print(ddsHTSeq)
 
 #Filter out genes with zero counts
 ddsHTSeqFiltered <- ddsHTSeq [ rowSums(counts(ddsHTSeq)) >= 0, ]
@@ -112,7 +115,7 @@ distsRL <- dist(t(assay(rld)))
 DistMatrix <- as.matrix(distsRL)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(rld)))
-#mds$condition <- c("Control", "Control", "Control", "MCK", "MCK")
+mds$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", "Soleus","Soleus","Soleus")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
   ggtitle("MDS using Euclidean distance and rLog Transformation")
 
@@ -123,7 +126,7 @@ distsVSD <- dist(t(assay(vsd)))
 DistMatrix <- as.matrix(distsVSD)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
-#mds$condition <- c("Control", "Control", "Control", "MCK", "MCK")
+mds$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", "Soleus","Soleus","Soleus")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
   ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
 
@@ -137,7 +140,7 @@ poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
 samplePoisDistMatrix <- as.matrix( poisd$dd )
 mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
-#mdsPois$condition <- c("Control", "Control", "Control", "MCK", "MCK")
+mdsPois$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", "Soleus","Soleus","Soleus")
 ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3) + 
   ggtitle("Poisson Distance Plot of the Read Counts")
 
@@ -161,6 +164,12 @@ fviz_eig(OGPCAN)
 eig.val <- get_eigenvalue(OGPCAN)
 #eig.val
 
+# Results for individuals
+res.ind <- get_pca_ind(OGPCAN)
+res.ind$coord          # Coordinates
+res.ind$contrib        # Contributions to the PCs
+res.ind$cos2           # Quality of representation 
+
 # Graph of individuals. 
 # Individuals with a similar profile are grouped together
 fviz_pca_ind(OGPCAN,
@@ -169,31 +178,30 @@ fviz_pca_ind(OGPCAN,
              repel = FALSE     # text overlapping
 )
 
-# Results for individuals
-res.ind <- get_pca_ind(OGPCAN)
-res.ind$coord          # Coordinates
-res.ind$contrib        # Contributions to the PCs
-res.ind$cos2           # Quality of representation 
-
-#Graph of variables. 
-# Positive correlated variables point to the same side of the plot. 
-# Negative correlated variables point to opposite sides of the graph.
-fviz_pca_var(OGPCAN,
-             col.var = "contrib", # Color by contributions to the PC
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = FALSE    # text overlapping
-)
 # Results for Variables
 res.var <- get_pca_var(OGPCAN)
 res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
+grp <- c("Gastrocnemius", "Gastrocnemius", "Soleus", "Soleus", "Soleus", "Soleus", "Soleus")
+
+# Graph of variables. 
+# Positive correlated variables point to the same side of the plot. 
+# Negative correlated variables point to opposite sides of the graph.
+fviz_pca_var(OGPCAN,
+             col.var = grp, # Color by contributions to the PC
+             palette = c("#FC4E07", "#00AFBB"),
+             repel = TRUE,    # text overlapping
+             legend.title = "Cluster")
+
 # Biplot of individuals and variables
 fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
-                col.ind = "#696969",  # Individuals color,
-                col.var = "y", 
-                legend="null") + scale_color_gradient2(low="blue", high="red", midpoint = 0)
+                col.ind = "#696969",  # Individuals color
+                col.var = grp, 
+                palette = c("#FC4E07", "#00AFBB"),
+                title = NULL,
+                legend.title = "Tissue Type")
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
@@ -219,8 +227,8 @@ ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
 dev.off()
 
 #--------Calculate differentially expressed genes from DESeq2---------------------
-res.SOL_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "S", "G"))
-summary(res.SOL_GA_M)
+res.SOL_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "G", "S"))
+#summary(res.SOL_GA_M)
 
 ##---MA plot from results---------------------------------------
 #-Bland-Altman plot that visualizes the differences between measurements taken 
@@ -232,7 +240,7 @@ plotMA.SOL_GA_M <- plotMA(res.SOL_GA_M, ylim=c(-3,3))
 ##---Volcano Plots----------------------------------------------------------------
 #-Unlabelled plot----
 with(res.SOL_GA_M, plot(log2FoldChange, -log10(pvalue), 
-                      pch=10, xlim=c(-7,7),
+                      pch=10,
                       xlab=expression(paste("log"[2]*Delta,"FC (GA/SOL)")), 
                       ylab=expression(paste("-log"[10]*"(p-value)"))))
 
@@ -278,13 +286,13 @@ res.SOL_GA_M_filtered3 <- subset(res.SOL_GA_M_filtered2, absFC > 1)
 
 #---Print out the filtered data as a text file---
 write.table(res.SOL_GA_M_filtered2, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_GA_M_filtered_padj_20180831.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_GA_M_filtered_padj_20180918.txt", 
             sep ="\t")
 write.table(res.SOL_GA_M_filtered3, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_GA_M_filtered_padjfoldchange_20180831.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_GA_M_filtered_padjfoldchange_20180918.txt", 
             sep ="\t")
 write.table(res.SOL_GA_M, 
-            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_GA_M_20180820.txt", 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.SOL_GA_M_20180918.txt", 
             sep = "\t")
 
 
@@ -305,7 +313,7 @@ dev.off()
 Mat <- assay(vsd)[order(res.SOL_GA_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(14), 
+pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
          show_rownames = F, show_colnames = T)
 
 dev.off()
