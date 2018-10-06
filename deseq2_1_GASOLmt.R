@@ -23,11 +23,13 @@ ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
 #print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
 #print(sampleConditions)
-sampleTable <- data.frame(sampleName = sampleIdentifier, fileName = sampleFiles, condition = sampleConditions)
+sampleTable <- data.frame(sampleName = sampleIdentifier, fileName = sampleFiles, 
+                          condition = sampleConditions)
 #print(sampleTable)
 
 #-------Calculate DESeq2 from HTSeq count tables-------------
-ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = ~ condition)
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, 
+                                       directory = directory, design = ~ condition)
 #print(ddsHTSeq)
 
 #Filter out genes with zero counts
@@ -126,7 +128,8 @@ distsVSD <- dist(t(assay(vsd)))
 DistMatrix <- as.matrix(distsVSD)
 mdsData <- data.frame(cmdscale(DistMatrix))
 mds <- cbind(mdsData, as.data.frame(colData(vsd)))
-mds$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", "Soleus","Soleus","Soleus")
+mds$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", 
+                   "Soleus","Soleus","Soleus")
 ggplot(mds, aes (X1, X2, color=condition)) + geom_point(size=3) + 
   ggtitle("MDS using Euclidean distances and Variance Stabilizing Transformation")
 
@@ -140,7 +143,8 @@ poisd <- PoissonDistance(t(counts(ddsHTSeqFiltered)))
 samplePoisDistMatrix <- as.matrix( poisd$dd )
 mdsPoisData <- data.frame(cmdscale(samplePoisDistMatrix))
 mdsPois <- cbind(mdsPoisData, as.data.frame(colData(ddsHTSeqFiltered)))
-mdsPois$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", "Soleus","Soleus","Soleus")
+mdsPois$condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus","Soleus", 
+                       "Soleus","Soleus","Soleus")
 ggplot(mdsPois, aes(X1,X2,color=condition)) + geom_point(size=3) + 
   ggtitle("Poisson Distance Plot of the Read Counts")
 
@@ -184,7 +188,8 @@ res.var$coord          # Coordinates
 res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
-grp <- c("Gastrocnemius", "Gastrocnemius", "Soleus", "Soleus", "Soleus", "Soleus", "Soleus")
+grp <- c("Gastrocnemius", "Gastrocnemius", "Soleus", "Soleus", 
+         "Soleus", "Soleus", "Soleus")
 
 # Graph of variables. 
 # Positive correlated variables point to the same side of the plot. 
@@ -199,9 +204,9 @@ fviz_pca_var(OGPCAN,
 fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.ind = "#696969",  # Individuals color
                 col.var = grp, 
-                palette = c("#FC4E07", "#00AFBB"),
+                palette = c("#00ff00", "#ff00ff"),
                 title = NULL,
-                legend.title = "Tissue Type")
+                legend.title = "Tissue")
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
@@ -209,7 +214,6 @@ OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 OGPCAN_matrix$Condition <- c("Gastrocnemis", "Gastrocnemis", "Soleus", "Soleus",
                              "Soleus", "Soleus", "Soleus")
 #print(OGPCAN_matrix)
-
 
 # Plot PCA
 ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
@@ -224,7 +228,9 @@ ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
   xlab(paste0("PC1: ", sprintf("%.3f", eig.val$variance.percent[1]), "% variance")) +
   ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance"))
 #ggtitle("Principle Component Analysis based on rlog transformation")
+
 dev.off()
+
 
 #--------Calculate differentially expressed genes from DESeq2---------------------
 res.SOL_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "G", "S"))
@@ -263,16 +269,6 @@ dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
-#-Calculate differentially expressed genes from DESeq2 object 
-# based on adjusted p-value
-res.SOL_GA_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-#table(res.SOL_GA_M.05$padj < 0.05)
-
-#-Calculate differentially expressed genes from DESeq2 object 
-# based on log fold change equal to 0.5 (2^0.5)
-res.SOL_GA_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-#table(res.SOL_GA_MLFC1$padj < 0.1)
-
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
 res.SOL_GA_M_filtered2 <- subset(res.SOL_GA_M, padj < 0.05)
@@ -299,22 +295,37 @@ write.table(res.SOL_GA_M,
 ##---Heatmap of the most significant fold-change genes--------------
 #install.packages("pheatmap")
 library("pheatmap")
+library("grid")
+
+# Edit body of pheatmap:::draw_colnames, customizing it to your liking
+# For pheatmap_1.0.8 and later:
+draw_colnames_45 <- function (coln, gaps, ...) {
+  coord = pheatmap:::find_coordinates(length(coln), gaps)
+  x = coord$coord - 0.5 * coord$size
+  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 0.5, 
+                 hjust = 1, rot = 0, gp = gpar(...))
+  return(res)}
+
+# 'Overwrite' default draw_colnames with your own version 
+assignInNamespace(x="draw_colnames", value="draw_colnames_45",
+                  ns=asNamespace("pheatmap"))
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
 Mat <- assay(vsd)[order(res.SOL_GA_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
+
+# Heatmap scale has 5 breaking points
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F, show_rownames = F, show_colnames = T)
 
 dev.off()
 
-# Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.SOL_GA_M_filtered2$padj), ]
-Mat <- Mat - rowMeans(Mat)
-df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
-         show_rownames = F, show_colnames = T)
+# Heatmap scale has 20 breaking points
+pheatmap(Mat,
+         color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(10), 
+         #breaks = c(-2, -1,-0.2, 0.2, 1, 2),
+         cluster_col = F, show_rownames = F, show_colnames = T)
 
 dev.off()
 

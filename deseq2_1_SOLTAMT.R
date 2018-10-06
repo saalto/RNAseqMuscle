@@ -23,11 +23,13 @@ ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
 #print(ConditionMatch)
 sampleConditions <- regmatches(dir(pattern = '*.txt'), ConditionMatch)
 #print(sampleConditions)
-sampleTable <- data.frame(sampleName = sampleIdentifiers, fileName = sampleFiles, condition = sampleConditions)
+sampleTable <- data.frame(sampleName = sampleIdentifiers, fileName = sampleFiles, 
+                          condition = sampleConditions)
 #print(sampleTable)
 
 #-------Calculate DESeq2 from HTSeq count tables-------------
-ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, design = ~ condition)
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = directory, 
+                                       design = ~ condition)
 #print(ddsHTSeq)
 
 #Filter out genes with zero counts
@@ -40,6 +42,7 @@ ddsHTSeqFiltered <- DESeq(ddsHTSeqFiltered)
 rld <- rlog(ddsHTSeqFiltered, blind = FALSE)
 vsd <- varianceStabilizingTransformation(ddsHTSeqFiltered, blind = FALSE)
 logTransCounts <- assay(rld)
+
 #-Plot the read count after rlog transformation
 dists <-dist(t(logTransCounts))
 plot(hclust(dists))
@@ -184,7 +187,8 @@ res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
 # Identifying sample groupings
-grp <- c("Soleus", "Soleus", "Soleus", "Soleus", "Soleus", "Tibialis", "Tibialis", "Tibialis", "Tibialis")
+grp <- c("Soleus", "Soleus", "Soleus", "Soleus", "Soleus", 
+         "Tibialis", "Tibialis", "Tibialis", "Tibialis")
 
 #Graph of variables. 
 # Positive correlated variables point to the same side of the plot. 
@@ -201,12 +205,13 @@ fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.var = grp, 
                 legend.title="Tissue Type", 
                 title = NULL,
-                palette = c("#FC4E07", "#00AFBB"))
+                palette = c("#ff00ff", "#00ffff"))+ scale_y_reverse()
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Soleus","Soleus","Soleus","Soleus","Soleus","Tibialis","Tibialis","Tibialis", "Tibialis")
+OGPCAN_matrix$Condition <- c("Soleus","Soleus","Soleus","Soleus","Soleus",
+                             "Tibialis","Tibialis","Tibialis", "Tibialis")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -263,15 +268,6 @@ dev.off()
 
 ##---Filtering the Results (DE genes) into tables---
 #-Calculate differentially expressed genes from DESeq2 object 
-# based on adjusted p-value
-res.TA_SOL_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-#table(res.TA_SOL_M.05$padj < 0.05)
-
-#-Calculate differentially expressed genes from DESeq2 object 
-# based on log fold change equal to 0.5 (2^0.5)
-res.TA_SOL_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-#table(res.TA_SOL_MLFC1$padj < 0.1)
-
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
 res.TA_SOL_M_filtered2 <- subset(res.TA_SOL_M, padj < 0.05)
@@ -297,23 +293,38 @@ write.table(res.TA_SOL_M,
 
 ##---Heatmap of the most significant fold-change genes--------------
 #install.packages("pheatmap")
+library("grid")
 library("pheatmap")
+
+# Edit body of pheatmap:::draw_colnames, customizing it to your liking
+# For pheatmap_1.0.8 and later:
+draw_colnames_45 <- function (coln, gaps, ...) {
+  coord = pheatmap:::find_coordinates(length(coln), gaps)
+  x = coord$coord - 0.5 * coord$size
+  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 0.5, 
+                 hjust = 1, rot = 0, gp = gpar(...))
+  return(res)}
+
+# 'Overwrite' default draw_colnames with your own version 
+assignInNamespace(x="draw_colnames", value="draw_colnames_45",
+                  ns=asNamespace("pheatmap"))
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
 Mat <- assay(vsd)[order(res.TA_SOL_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F, 
+         treeheight_row = 0, fontsize = 15,
+         show_rownames = F, show_colnames = F)
 
 dev.off()
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.TA_SOL_M_filtered2$padj), ]
-Mat <- Mat - rowMeans(Mat)
-df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
-         show_rownames = F, show_colnames = T)
+pheatmap(Mat,
+         color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(10), 
+         #breaks = c(-2, -1,-0.2, 0.2, 1, 2),
+         cluster_col = F, show_rownames = F, show_colnames = T)
 
 dev.off()
 

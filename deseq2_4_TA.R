@@ -203,7 +203,8 @@ grp <- c("Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant")
 # Negative correlated variables point to opposite sides of the graph.
 fviz_pca_var(OGPCAN,
              col.var = grp, # Color by contributions to the PC
-             palette = c("#FC4E07", "#00AFBB"),
+             palette = c("#00AFBB", "#FC4E07"),
+             legend.title = "Tibialis Anterior",
              repel = TRUE    # text overlapping
 )
 
@@ -211,9 +212,10 @@ fviz_pca_var(OGPCAN,
 fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.ind = "#696969",  # Individuals color,
                 col.var = grp, 
-                legend.title="Tibialis Sample", 
+                legend.title="Tibialis Anterior", 
                 title = NULL,
-                palette = c("#00AFBB", "#FC4E07"))
+                palette = c("#0000ff", "#00ffff")
+                ) + scale_y_reverse()
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
@@ -242,13 +244,11 @@ dev.off()
 res.TA_W_M <- results(ddsHTSeqFiltered, contrast = c("condition", "TM", "TF"))
 #summary(res.TA_W_M)
 
-
 ##---MA plot from results---------------------------------------
 #-Bland-Altman plot that visualizes the differences between measurements 
 # taken in two samples, by transforming the data onto M (log ratio) and 
 # A (mean average) scales, then plotting these values
 plotMA.TA_W_M <- plotMA(res.TA_W_M, ylim=c(-2,2))
-
 
 ##---Volcano Plots----------------------------------------------------------------
 with(res.TA_W_M, plot(log2FoldChange, -log10(pvalue), 
@@ -274,14 +274,6 @@ dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
-#-Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
-res.TA_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-#table(res.TA_W_M.05$padj < 0.05)
-
-#-Calculate differentially expressed genes from DESeq2 object based on log fold change equal to 0.5 (2^0.5)
-res.TA_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-#table(res.TA_W_MLFC1$padj < 0.05)
-
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
 res.TA_W_M_filtered2 <- subset(res.TA_W_M, padj < 0.05)
@@ -290,6 +282,7 @@ res.TA_W_M_filtered2$absFC <- abs(res.TA_W_M_filtered2$log2FoldChange)
 #dim(res.TA_W_M_filtered2)
 
 res.TA_W_M_filtered3 <- subset(res.TA_W_M_filtered2, absFC > 1)
+res.TA_W_M_filtered4 <- subset(res.TA_W_M, pvalue < 0.05)
 #head(res.TA_W_M_filtered3)
 #dim(res.TA_W_M_filtered3)
 
@@ -304,6 +297,9 @@ write.table(res.TA_W_M,
             "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_20180918.txt", 
             sep = "\t")
 
+write.table(res.TA_W_M_filtered4, 
+            "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/RNAseq_analysis/res.TA_W_M_filtered_pvalue_20180928.txt", 
+            sep ="\t")
 
 ##---Heatmap of the most significant fold-change genes--------------
 #install.packages("pheatmap")
@@ -311,19 +307,12 @@ library("grid")
 library("pheatmap")
 
 # Edit body of pheatmap:::draw_colnames, customizing it to your liking
-draw_colnames_45 <- function (coln, ...) {
-  m = length(coln)
-  x = (1:m)/m - 1/2/m
-  grid.text(coln, x = x, y = unit(0.96, "npc"), vjust = .5, 
-            hjust = 1, rot = 45, gp = gpar(...)) ## Was 'hjust=0' and 'rot=270'
-}
-
 # For pheatmap_1.0.8 and later:
 draw_colnames_45 <- function (coln, gaps, ...) {
   coord = pheatmap:::find_coordinates(length(coln), gaps)
   x = coord$coord - 0.5 * coord$size
-  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 0.5, 
-                 hjust = 1, rot = 45, gp = gpar(...))
+  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 1, 
+                 hjust = 0, rot = 0, gp = gpar(...))
   return(res)}
 
 # 'Overwrite' default draw_colnames with your own version 
@@ -334,20 +323,19 @@ assignInNamespace(x="draw_colnames", value="draw_colnames_45",
 Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff33"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
+         breaks = c(-2, -1, -0.2, 0.2, 1, 2), cluster_col= F, 
+         treeheight_row = 0, fontsize = 15,
+         show_rownames = F, show_colnames = T)
 
 dev.off()
 
-# # Heatmap of the significant (padj<0.05) DE genes based on VSD
-# Mat <- assay(vsd)[order(res.TA_W_M_filtered2$padj), ]
-# Mat <- Mat - rowMeans(Mat)
-# df <- as.data.frame(colData(vsd)[,c("condition")])
-# 
-# pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
-#          show_rownames = F, show_colnames = T)
+## Heatmap of the significant (padj<0.05) DE genes based on VSD
+pheatmap(Mat,
+         color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(100), 
+         #breaks = c(-2, -1,-0.2, 0.2, 1, 2),
+         cluster_col = F, show_rownames = F, show_colnames = T)
 
-
-##---Clear data and delete figure-----------------------
+##---Clear data and delete figure----------------------
 rm(list = ls())
-dev.off()
+  dev.off()

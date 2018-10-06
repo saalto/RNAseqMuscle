@@ -203,12 +203,13 @@ fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.var = grp, 
                 legend.title="Tissue Type", 
                 title = NULL,
-                palette = c("#FC4E07", "#00AFBB"))
+                palette = c("#bb0a1e", "#0000ff")) + scale_y_reverse()
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Soleus","Soleus","Soleus","Soleus","Soleus","Soleus","Tibialis", "Tibialis")
+OGPCAN_matrix$Condition <- c("Soleus","Soleus","Soleus","Soleus","Soleus","Soleus",
+                             "Tibialis", "Tibialis")
 #print(OGPCAN_matrix)
 
 # Plot PCA
@@ -229,7 +230,7 @@ dev.off()
 
 #--------Calculate differentially expressed genes from DESeq2---------------------
 res.TA_SOL_C <- results(ddsHTSeqFiltered, contrast = c("condition", "S", "T"))
-summary(res.TA_SOL_C)
+#summary(res.TA_SOL_C)
 
 ##---MA plot from results---------------------------------------
 #-Bland-Altman plot that visualizes the differences between measurements taken 
@@ -265,15 +266,6 @@ dev.off()
 
 ##---Filtering the Results (DE genes) into tables---
 #-Calculate differentially expressed genes from DESeq2 object 
-# based on adjusted p-value
-res.TA_SOL_C.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-#table(res.TA_SOL_C.05$padj < 0.05)
-
-#-Calculate differentially expressed genes from DESeq2 object 
-# based on log fold change equal to 0.5 (2^0.5)
-res.TA_SOL_CLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-#table(res.TA_SOL_CLFC1$padj < 0.1)
-
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
 res.TA_SOL_C_filtered2 <- subset(res.TA_SOL_C, padj < 0.05)
@@ -299,23 +291,36 @@ write.table(res.TA_SOL_C,
 
 ##---Heatmap of the most significant fold-change genes--------------
 #install.packages("pheatmap")
+library("grid")
 library("pheatmap")
+
+# Edit body of pheatmap:::draw_colnames, customizing it to your liking
+# For pheatmap_1.0.8 and later:
+draw_colnames_45 <- function (coln, gaps, ...) {
+  coord = pheatmap:::find_coordinates(length(coln), gaps)
+  x = coord$coord - 0.5 * coord$size
+  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 0.5, 
+                 hjust = 1, rot = 0, gp = gpar(...))
+  return(res)}
+
+# 'Overwrite' default draw_colnames with your own version 
+assignInNamespace(x="draw_colnames", value="draw_colnames_45",
+                  ns=asNamespace("pheatmap"))
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
 Mat <- assay(vsd)[order(res.TA_SOL_C_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = T)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F,
+         treeheight_row = 0, fontsize = 15,
+         show_rownames = F, show_colnames = F)
 
 dev.off()
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.TA_SOL_C_filtered2$padj), ]
-Mat <- Mat - rowMeans(Mat)
-df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20), 
-         show_rownames = F, show_colnames = T)
+pheatmap(Mat, color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(10), 
+         cluster_col = F, show_rownames = F, show_colnames = T)
 
 dev.off()
 

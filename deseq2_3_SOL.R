@@ -217,12 +217,30 @@ fviz_pca_var(OGPCAN,
 fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.ind = "#696969",  # Individuals color,
                 col.var = grp, 
-                legend.title="Soleus Sample",
+                legend.title="Soleus",
                 title = NULL,
-                palette = c("#00AFBB", "#FC4E07"))
+                palette = c("#bb0a1e", "#ff00ff"))
 
-#---PCA plot replicates set up---
-   #ggtitle("Principle Component Analysis based on rlog transformation")
+# PCA plot replicates set up
+OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
+#print(OGPCAN_matrix)
+OGPCAN_matrix$Condition <- c("Control","Control", "Control", "Control", "Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant", "Mutant")
+#print(OGPCAN_matrix)
+
+# Plot PCA
+ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
+  geom_point(size = 3) +
+  theme(axis.text.x = element_text(size = 14, color = "black"),
+        axis.title.x = element_text(size  = 16, face = "bold"),
+        axis.text.y = element_text(color = "black", size = 14),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        legend.title = element_text(size = 16, face = 'bold'),
+        legend.text = element_text(size = 14)) +
+  scale_color_discrete(name = "Sample") +
+  xlab(paste0("PC1: ", sprintf("%.3f", eig.val$variance.percent[1]), "% variance")) +
+  ylab(paste0("PC2: ", sprintf("%.3f", eig.val$variance.percent[2]), "% variance"))
+#ggtitle("Principle Component Analysis based on rlog transformation")
+
 dev.off()
 
 
@@ -264,14 +282,6 @@ dev.off()
 
 
 ##---Filtering the Results (DE genes) into tables---
-#-Calculate differentially expressed genes from DESeq2 object based on adjusted p-value
-res.SOL_W_M.05 <- results(ddsHTSeqFiltered, alpha=0.05)
-table(res.TA_W_M.05$padj < 0.05)
-
-#-Calculate differentially expressed genes from DESeq2 object based on 
-# log fold change equal to 0.5 (2^0.5)
-res.SOL_W_MLFC1 <- results(ddsHTSeqFiltered, lfcThreshold=0.5)
-table(res.TA_W_MLFC1$padj < 0.05)
 
 #-Subset data based on (1) adjusted p-value less than 0.05 AND 
 # (2) absolute value of the log2 fold change greater than 0.5
@@ -295,23 +305,36 @@ write.table(res.SOL_W_M,
 
 ##---Heatmap of the most significant fold-change genes--------------
 #install.packages("pheatmap")
+library("grid")
 library("pheatmap")
+
+# Edit body of pheatmap:::draw_colnames, customizing it to your liking
+# For pheatmap_1.0.8 and later:
+draw_colnames_45 <- function (coln, gaps, ...) {
+  coord = pheatmap:::find_coordinates(length(coln), gaps)
+  x = coord$coord - 0.5 * coord$size
+  res = textGrob(coln, x = x, y = unit(1, "npc") - unit(3,"bigpts"), vjust = 1, 
+                 hjust = 1, rot = 0, gp = gpar(...))
+  return(res)}
+
+# 'Overwrite' default draw_colnames with your own version 
+assignInNamespace(x="draw_colnames", value="draw_colnames_45",
+                  ns=asNamespace("pheatmap"))
 
 # Heatmap of the significant (padj<0.05) DE genes based on VSD
 Mat <- assay(vsd)[order(res.SOL_W_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), show_rownames = F, show_colnames = F)
-
-dev.off()
-
-# Heatmap of the significant (padj<0.05) DE genes based on VSD
-Mat <- assay(vsd)[order(res.SOL_W_M_filtered2$padj), ]
-Mat <- Mat - rowMeans(Mat)
-df <- as.data.frame(colData(vsd)[,c("condition")])
-pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(20),
+         breaks = c(-2, -1, -0.2, 0.2, 1, 2), cluster_col = F, 
+         treeheight_row = 0, fontsize = 15,
          show_rownames = F, show_colnames = T)
+
+# pheatmap(Mat,
+#          color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(10), 
+#          #breaks = c(-2, -1,-0.2, 0.2, 1, 2),
+#          cluster_col = F, show_rownames = F, show_colnames = T)
+
 dev.off()
 
 
