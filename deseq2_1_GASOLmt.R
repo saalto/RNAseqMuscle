@@ -206,7 +206,7 @@ fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
                 col.var = grp, 
                 palette = c("#00ff00", "#ff00ff"),
                 title = NULL,
-                legend.title = "Tissue")
+                legend.title = "Tissue") + scale_y_reverse()
 
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
@@ -233,7 +233,7 @@ dev.off()
 
 
 #--------Calculate differentially expressed genes from DESeq2---------------------
-res.SOL_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "G", "S"))
+res.SOL_GA_M <- results(ddsHTSeqFiltered, contrast = c("condition", "S", "G"))
 #summary(res.SOL_GA_M)
 
 ##---MA plot from results---------------------------------------
@@ -317,17 +317,18 @@ df <- as.data.frame(colData(vsd)[,c("condition")])
 
 # Heatmap scale has 5 breaking points
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F, show_rownames = F, show_colnames = T)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F, 
+         treeheight_row = 0, fontsize = 15,
+         show_rownames = F, show_colnames = F)
 
 dev.off()
 
 # Heatmap scale has 20 breaking points
-pheatmap(Mat,
-         color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(10), 
-         #breaks = c(-2, -1,-0.2, 0.2, 1, 2),
-         cluster_col = F, show_rownames = F, show_colnames = T)
-
-dev.off()
+# pheatmap(Mat,
+#          color= colorRampPalette(c("#FF0000", "#000000", "#00ff00"))(10), 
+#          #breaks = c(-2, -1,-0.2, 0.2, 1, 2),
+#          cluster_col = F, show_rownames = F, show_colnames = T)
+# dev.off()
 
 
 ##---Clear data and load packages-----------------------

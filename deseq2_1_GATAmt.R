@@ -312,7 +312,9 @@ Mat <- assay(vsd)[order(res.TA_GA_M_filtered2$padj), ]
 Mat <- Mat - rowMeans(Mat)
 df <- as.data.frame(colData(vsd)[,c("condition")])
 pheatmap(Mat, color= colorRampPalette(c("#0000ff", "#000000", "#ffff00"))(5), 
-         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F, show_rownames = F, show_colnames = T)
+         breaks = c(-2, -1, -0.25, 0.25, 1, 2), cluster_col = F,
+         treeheight_row = 0, fontsize = 15,
+         show_rownames = F, show_colnames = F)
 
 dev.off()
 
