@@ -17,7 +17,7 @@ directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/c
 sampleFiles <- dir(pattern = 'sorted')
 print(sampleFiles)
 
-sampleIdentifier <- c("G1", "G2", "S1", "S2", "S3", "S4", "S5", "S6")
+pwdsampleIdentifier <- c("G1", "G2", "S1", "S2", "S3", "S4", "S5", "S6")
 
 #sample group set up
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
