@@ -9,6 +9,7 @@ library("edgeR")
 #   +all conditions (say, wt and mut for a single tissue) are concatenated
 #   +DO NOT open this file in Excel before doing the R read, since then
 #     Excel interprets some gene names (March1 - March10) as dates
+
 data_file = '../../data/2018.11.15/soleus-data/soleus-all-data.txt'
 # directory to save results - no trailing forward slash!
 save_path = '..'
@@ -18,6 +19,7 @@ groups <- factor(c(1,1,1,1,1,1,2,2,2,2,2))
 adjp <- 0.05
 # drop genes with very low total counts? (recommended)
 drop_low = TRUE
+
 # -------------------------
 # read in count data
 # NOTES:

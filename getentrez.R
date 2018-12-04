@@ -38,7 +38,7 @@ for (i in 1:length(files)){
   # symbol-to-entrez map
   et <- bitr(textfile,fromType="SYMBOL",toType="ENTREZID",OrgDb=db_name)
   
-  # save
+  # save, 
   outfile <- paste(i,"symbol-to-entrez.rds",sep = '_')
   saveRDS(et,file=paste(data_dir,outfile,sep='/'))
 }
