@@ -18,7 +18,7 @@ files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_So
 n_qc <- 5
 
 # name for the combined file (it is saved to data_path)
-comb_file <- 'soleus-data-combined.txt'
+comb_file <- 'AllSoleus_ReadCounts.txt'
 # ---------------------------
 # start with the first file
 master <- read.csv(paste(data_path,files_to_agg[1],sep='/'),sep='\t',header=FALSE)

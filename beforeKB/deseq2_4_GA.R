@@ -22,13 +22,13 @@ library("MCL")
 #directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/RNAseq_GAtextfiles/"
 
 ##---Set working directory to iteration 2---
-setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/gastrocnemius/renamed_files2")
-directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/gastrocnemius/renamed_files2"
+setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/gastrocnemius/renamed_files2//")
+directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/gastrocnemius/renamed_files2/"
 
 ##---Set up DESeq2 data, based on names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
 #print(sampleFiles)
-sampleIdentifiers <- c("C1", "C2", "M1", "M2")
+sampleIdentifiers <- c("C1", "C2","M1", "M2")
 
 #---sample group set up---
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
@@ -240,7 +240,7 @@ OGPCAN_matrix$Condition <- c("Control", "Control", "Mutant", "Mutant")
 
 # Plot PCA
 ggplot(OGPCAN_matrix, aes(PC1, PC2, color = Condition)) +
-  geom_point(size = 3) +
+  geom_point(size = 3) + geom_text(aes(label=row.names(OGPCAN_matrix)),vjust=0, hjust=0)+
   theme(axis.text.x = element_text(size = 14, color = "black"),
         axis.title.x = element_text(size  = 16, face = "bold"),
         axis.text.y = element_text(color = "black", size = 14),

@@ -1,4 +1,8 @@
 # Computing differentially expressed genes with edgeR
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("edgeR", version = "3.8")
+
 library("edgeR")
 
 # ----- make changes here ----
@@ -10,9 +14,9 @@ library("edgeR")
 #   +DO NOT open this file in Excel before doing the R read, since then
 #     Excel interprets some gene names (March1 - March10) as dates
 
-data_file = '../../data/2018.11.15/soleus-data/soleus-all-data.txt'
+data_file = 'C:/Users/sarah/OneDrive/Documents/2018/04_2018_Fall/RNAseq_analysis/2018_12_05/soleus-data-combined.txt'
 # directory to save results - no trailing forward slash!
-save_path = '..'
+save_path = 'C:/Users/sarah/OneDrive/Documents/2018/04_2018_Fall/RNAseq_analysis/2018_12_05/'
 # set up the two groups (in this case, I have 6 wt replicates followed by 5 mut replicates)
 groups <- factor(c(1,1,1,1,1,1,2,2,2,2,2))
 # threshold for significance
@@ -62,5 +66,5 @@ tagtable <- topTags(qlf,n=length(qlf$df.total))
 deindex <- which(tagtable$table$FDR < adjp, arr.ind=TRUE)
 genelist <- row.names(tagtable$table)[deindex]
 saveRDS(genelist,file=paste(save_path,'de-edgeR-genes.rds',sep='/'))
-saveRDS(universe,file=paste(save_path,'de-deseq-universe.rds',sep='/'))
+saveRDS(universe,file=paste(save_path,'de-edgeR-universe.rds',sep='/'))
 saveRDS(tagtable$table,file=paste(save_path,'de-edgeR-results.rds',sep='/'))

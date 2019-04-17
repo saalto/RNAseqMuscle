@@ -29,18 +29,20 @@ for (i in 1:length(files)){
   #length(t$V3[t$V3 == TRUE])
   multiples <-subset(t, V3 == TRUE)
   multiples <- multiples$SYMBOL
-  x <- mapIds(org.Mm.eg.db,multiples,'ENTREZID','SYMBOL',multiVals='list')
+  #x <- mapIds(org.Mm.eg.db,multiples,'ENTREZID','SYMBOL',multiVals='list')
   # keys entered are not valid keys for 'SYMBOL'
   
   # save, 
   outfile <- paste(i,"symbol-to-Multipleentrez.rds",sep = '_')
-  saveRDS(x,file=paste(data_dir,outfile,sep='/'))
+  saveRDS(multiples,file=paste(data_dir,outfile,sep='/'))
   
   # symbol-to-Oneentrez map
-  x <- mapIds(org.Mm.eg.db,textfile,'ENTREZID','SYMBOL',multiVals='first')
+  ones <-subset(t,V3 ==FALSE)
+  ones <-ones$SYMBOL
+  y <- mapIds(org.Mm.eg.db,ones,'ENTREZID','SYMBOL',multiVals='first')
     # save, 
   outfile <- paste(i,"symbol-to-Oneentrez.rds",sep = '_')
-  saveRDS(x,file=paste(data_dir,outfile,sep='/'))
+  saveRDS(y,file=paste(data_dir,outfile,sep='/'))
 
 }
 

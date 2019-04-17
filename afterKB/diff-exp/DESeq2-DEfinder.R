@@ -10,11 +10,11 @@ library("DESeq2")
 #   +DO NOT open this file in Excel before doing the R read, since then
 #     Excel interprets some gene names (March1 - March10) as dates
 
-data_file = '../../data/2018.11.15/soleus-data/soleus-all-data.txt'
+data_file = 'C:/Users/sarah/OneDrive/Documents/2018/04_2018_Fall/RNAseq_analysis/2018_12_05/soleus-data-combined.txt'
 # directory to save results - no trailing forward slash!
-save_path = '..'
+save_path = 'C:/Users/sarah/OneDrive/Documents/2018/04_2018_Fall/RNAseq_analysis/2018_12_05/'
 # column names; these are basically arbitrary and do not include the column of gene names
-colnames <- c('wt 1','wt 2','wt 3','wt 4','wt 5','wt 6','mut 1','mut 2','mut 3','mut 4','mut 5')
+col_names <- c('wt 1','wt 2','wt 3','wt 4','wt 5','wt 6','mut 1','mut 2','mut 3','mut 4','mut 5')
 # condition vector - tells DESeq what contrast to do (I called wt = untreated and wt = treated here)
 condition <- c(rep("untreated",6),rep("treated",5))
 # threshold for significance
@@ -33,7 +33,7 @@ cts <- cts[,c(2:12)]
 
 # change row/col names (script will fail here if Excel was used to open and save the data file)
 rownames(cts) <- genes
-colnames(cts) <- colnames
+colnames(cts) <- col_names
 
 coldata <- data.frame(colnames(cts), "condition" = condition)
 
