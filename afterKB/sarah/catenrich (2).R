@@ -2,7 +2,7 @@
 ##' @param all.genes: the gene universe (names only) to test against
 ##' @param sig.genes: the DE genes to test
 ##' @param entrez_hash: a double hash giving symbol-to-entrez ($stoe) and vice versa ($etos)
-##' @param kegg_hash: hash for KEGG ids -> descriptors (not used if asking for GO enrichmetn)
+##' @param kegg_hash: hash for KEGG ids -> descriptors (not used if asking for GO enrichment)
 ##' @param enrich_type: "GO:BP", "GO:MF", "GO:CC" or "KEGG"
 ##' @param p_cut: (adjusted) p-value cutoff for results
 ##' @param genome: name of genome to test against

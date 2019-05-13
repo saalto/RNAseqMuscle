@@ -16,13 +16,13 @@ library("MCL")
 #directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration1/RNAseq_SOLtextfiles/"
 
 ##---Set working directory to iteration 2-----------------------------
-setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus")
-directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus"
+setwd("C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus/renamed")
+directory <- "C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/soleus/renamed"
 
 ##---Set up DESeq2 data, based on file names of HTSeq counts in working directory---
 sampleFiles <- dir(pattern = 'sorted')
 #print(sampleFiles)
-identifierNames <- c("C1", "C2", "C3", "C4", "C5", "C6", "M1", "M2", "M3", "M4", "M5")
+identifierNames <- c("C1", "C2", "C3", "C4", "C5", "M1", "M2", "M3", "M4", "M5")
 
 #---sample group set up---
 ConditionMatch <- regexpr(pattern = '[A-Z]+', dir(pattern = '.txt'))
@@ -224,7 +224,7 @@ fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Control","Control", "Control", "Control", "Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant", "Mutant")
+OGPCAN_matrix$Condition <- c("Control","Control", "Control", "Control", "Control", "Mutant", "Mutant", "Mutant", "Mutant", "Mutant")
 #print(OGPCAN_matrix)
 
 # Plot PCA

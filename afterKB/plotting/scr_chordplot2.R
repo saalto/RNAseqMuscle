@@ -4,7 +4,7 @@ library(GOplot)
 
 # table of significant DE genes with info
 # gene_frame <- readRDS('/Users/kevinbrown/projects/pathway-analysis/results/2019.02.12/sig-met-table.rds')
-gene_frame <- AllSoleusWO6_DEMetGenes
+gene_frame <- AllSharedSoleus 
 
 # sym-to-entrez and reverse hash
 double_hash <- mouse_hash
@@ -12,8 +12,10 @@ double_hash <- mouse_hash
 # GO ids to assemble in the chord plot
 #go_ids <- c("GO:0006807")
 
-go_ids <- c("GO:0006807", "GO:0043170", "GO:0043085", "GO:1901575")
+go_ids <- intersectSOlTb2$category
 
+#Over-represented GO terms
+overrep_file <- AllSoleusWO6_enrich
 
 # filename to save chordplot
 file_name <- 'C:/Users/sarah/Documents/chord-plot.pdf'
@@ -32,10 +34,10 @@ if (max_fc > abs(min_fc)){
 }
 
 # assemble the data
-goplot_data <- GO_assemble(gene_frame,double_hash,go_ids, annot ="org.Mm.eg.db")
+#goplot_data <- GO_assemble(gene_frame,double_hash,overrep_file, go_ids,annot ="org.Mm.eg.db")
 # make the plot
-pdf(file_name, width = 11, height = 10)
-pl <- GOChord(goplot_data$chord,space=0.02,gene.order='logFC',gene.space=0.25,lfc.col=c('blue','white','red'),lfc.min=fc_min,lfc.max=fc_max,border.size=0, process.label = 10)
-pl <- pl + coord_fixed()
+pdf(file_name, width = 20, height = 20)
+pl <- GOChord(goplot_data$chord,space=0.02,gene.order='logFC',gene.space=0.25,lfc.col=c('red','white','blue'),lfc.min=fc_min,lfc.max=fc_max,border.size=0, process.label = 10)
+pl <- pl + coord_fixed() + theme(legend.position = "none")
 print(pl)
 dev.off()

@@ -1,6 +1,5 @@
 #' Returns a list of genes, taken from an input list, that have a given KEGG pathway number.  Also makes
 #'  chord data matrix (from chord_dat) for use with GOplot
-#' Documentation coming soon!
 #' @param gene_list: list of gene symbols
 #' @param double_hash: R hash() giving symbol-to-entrez ($stoe) mapping AND entrez-to-symbol ($etos) mapping
 #' @param kegg_id: kegg_id to search for

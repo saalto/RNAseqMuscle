@@ -1,5 +1,5 @@
 #' KEGG pathway counter for input list of genes
-#' Documentation coming soon!
+#' KEGG terms are identified using the genes and organized based on the count and p-value.
 #' @param gene_list: list of gene symbols
 #' @param sym_hash: R hash() giving symbol-to-entrez mapping
 #' @param kegg_hash: R hash() with ID-to-descriptor mapping for KEGG

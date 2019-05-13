@@ -7,16 +7,14 @@
 
 GO_genes <- function(gene_frame,double_hash,go_ids,annot=org.Mm.eg.db){
   require(hash)
-  require(GO.db)
+  require(org.Mm.eg.db)
   # because of missing ENTREZ IDs, some requested genes in gene_list may not be matchable.
   # we therefore create a modified gene_list without these
   mod_genes <- gene_frame[unname(has.key(row.names(gene_frame),double_hash$stoe)),]
   # use the hash to get entrez ids for the gene list
   entrez_ids <- hash::values(double_hash$stoe,keys=row.names(mod_genes),USE.NAMES=FALSE)
-  
   # now get a big data frame with all the GO IDs
-  all_go <- select(annot,keys=entrez_ids,columns="GO")
-  
+  all_go <- AnnotationDbi::select(annot,keys=entrez_ids,columns="GOALL", keytype="ENTREZID")
   # remove NAs from the result
   all_go <- all_go[!is.na(all_go$GO),]
   # filter the frame to remove anything other than BP we want
@@ -26,7 +24,6 @@ GO_genes <- function(gene_frame,double_hash,go_ids,annot=org.Mm.eg.db){
   # now use the entrez_ids to get back the gene names
   gene_syms <- hash::values(double_hash$etos,keys=all_go$ENTREZID,USE.NAMES=FALSE)
   all_go$GENES <- gene_syms
-  
   return(all_go)
 }
 
@@ -47,9 +44,9 @@ GO_assemble <- function(gene_frame,double_hash,overrep_file,go_ids, annot=org.Mm
   count = c()
   genes = c()
   logFC = c()
-  all_go <- GO_genes(gene_frame,double_hash,go_ids, annot=org.Mm.eg.db)
+  all_go <- GO_genes(gene_frame,double_hash,go_ids,annot=org.Mm.eg.db)
   
-  # go through GO ids one by one
+  # go through GO ids one-by-one and pull gene information
   for (i in 1:length(go_ids)){
     go_id = go_ids[i]
     # pull the gene list for specific GO ID
@@ -63,16 +60,13 @@ GO_assemble <- function(gene_frame,double_hash,overrep_file,go_ids, annot=org.Mm
   # category is BP when dealing with GO ids
   category <- rep('BP',length(genes))
   
-  # pull logFC
+  # pull logFC and term
   for(i in 1:length(genes)){
     g = genes[i]
-    logFC <- c(logFC, gene_frame[row.names(gene_frame) %in% g,]$logFC)
-  }
-  
-  #pull term
-  for(i in 1:length(ID)){
     ident = ID[i]
-    term <- c(term, overrep_file[overrep_file$category %in% ident,]$term)
+    logFC <- c(logFC, gene_frame[row.names(gene_frame) %in% g,]$logFC)
+    overrep_term <- overrep_file$overrep[overrep_file$overrep$category %in% ident,]
+    term <- c(term, overrep_term$term)
   }
   
   # this mimics the data frame produced by circ_dat
@@ -81,6 +75,7 @@ GO_assemble <- function(gene_frame,double_hash,overrep_file,go_ids, annot=org.Mm
   u_genes <- unique(circ$genes)
   u_logFC <- gene_frame[row.names(gene_frame) %in% u_genes,]$logFC
   genes_for_chord = data.frame("ID"=u_genes,"logFC"=u_logFC,stringsAsFactors=FALSE)
+  #genes_for_chord = genes_for_chord[genes_for_chord$ID %in% genelist$GENE,]
   # this is the one that chord_dat makes
   chord <- chord_dat(circ,genes_for_chord,unique(circ$term))
   # put them both in a list

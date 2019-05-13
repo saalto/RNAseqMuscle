@@ -1,5 +1,5 @@
 #' GO term counter for input list of genes
-#' Documentation coming soon!
+#' The GO terms are evaluated based on evidence and organized based on adjusted p-value.
 #' @param gene_list: list of gene symbols
 #' @param sym_hash: R hash() giving symbol-to-entrez mapping
 #' @param annot: AnnotationDBI object to use

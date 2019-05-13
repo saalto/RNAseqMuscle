@@ -1,3 +1,4 @@
+# --- Components to analysis the mutant files of RNA-seq data. ---
 # --- Location of Iteration #2 Processed Data ---
 home_loc <- 'C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/'
 
@@ -11,10 +12,10 @@ data_path <- 'C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/m
 
 # list of files (filenames) to mush together - the final order depends on the order you
 #   list them in this vector
-files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_Sol_S3.txt',
-                  'sorted.Flz_Sol_S4.txt','sorted.Flz_Sol_S5.txt','sorted.Flz_Sol_S6.txt',
-                  'sorted.Mck_Sol_S1.txt','sorted.Mck_Sol_S2.txt','sorted.Mck_Sol_S3.txt',
-                  'sorted.Mck_Sol_S4.txt','sorted.Mck_Sol_S5.txt')
+#files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_Sol_S3.txt',
+#                  'sorted.Flz_Sol_S4.txt','sorted.Flz_Sol_S5.txt','sorted.Flz_Sol_S6.txt',
+#                  'sorted.Mck_Sol_S1.txt','sorted.Mck_Sol_S2.txt','sorted.Mck_Sol_S3.txt',
+#                  'sorted.Mck_Sol_S4.txt','sorted.Mck_Sol_S5.txt')
 
 # number of quality control (non-gene) lines at the end of the file, in case this changes
 n_qc <- 5
@@ -42,10 +43,10 @@ data_path <- 'C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/m
 
 # list of files (filenames) to mush together - the final order depends on the order you
 #   list them in this vector
-files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_Sol_S3.txt',
-                  'sorted.Flz_Sol_S4.txt','sorted.Flz_Sol_S5.txt','sorted.Flz_Sol_S6.txt',
-                  'sorted.Mck_Sol_S1.txt','sorted.Mck_Sol_S2.txt','sorted.Mck_Sol_S3.txt',
-                  'sorted.Mck_Sol_S4.txt','sorted.Mck_Sol_S5.txt')
+# files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_Sol_S3.txt',
+#                   'sorted.Flz_Sol_S4.txt','sorted.Flz_Sol_S5.txt','sorted.Flz_Sol_S6.txt',
+#                   'sorted.Mck_Sol_S1.txt','sorted.Mck_Sol_S2.txt','sorted.Mck_Sol_S3.txt',
+#                   'sorted.Mck_Sol_S4.txt','sorted.Mck_Sol_S5.txt')
 
 # number of quality control (non-gene) lines at the end of the file, in case this changes
 n_qc <- 5
@@ -74,10 +75,10 @@ data_path <- 'C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/m
 
 # list of files (filenames) to mush together - the final order depends on the order you
 #   list them in this vector
-files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_Sol_S3.txt',
-                  'sorted.Flz_Sol_S4.txt','sorted.Flz_Sol_S5.txt','sorted.Flz_Sol_S6.txt',
-                  'sorted.Mck_Sol_S1.txt','sorted.Mck_Sol_S2.txt','sorted.Mck_Sol_S3.txt',
-                  'sorted.Mck_Sol_S4.txt','sorted.Mck_Sol_S5.txt')
+# files_to_agg <- c('sorted.Flz_Sol_S1.txt','sorted.Flz_Sol_S2.txt','sorted.Flz_Sol_S3.txt',
+#                   'sorted.Flz_Sol_S4.txt','sorted.Flz_Sol_S5.txt','sorted.Flz_Sol_S6.txt',
+#                   'sorted.Mck_Sol_S1.txt','sorted.Mck_Sol_S2.txt','sorted.Mck_Sol_S3.txt',
+#                   'sorted.Mck_Sol_S4.txt','sorted.Mck_Sol_S5.txt')
 
 # number of quality control (non-gene) lines at the end of the file, in case this changes
 n_qc <- 5
