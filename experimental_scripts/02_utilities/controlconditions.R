@@ -25,18 +25,18 @@ data_file = 'C:/Users/sarah/OneDrive/Documents/2018/03_2018_Summer/iteration2/co
 # directory to save results - no trailing forward slash!
 save_path = 'C:/Users/sarah/OneDrive/Documents/2018/04_2018_Fall/RNAseq_analysis/2018_12_14/'
 # column names; these are basically arbitrary and do not include the column of gene names
-col_names <- c('Sol 1','Sol 2','Sol 3','Sol 4','Sol 5','TA 1','TA 2')
+col_names <- c('TA1', 'TA2','Sol 1','Sol 2','Sol 3','Sol 4','Sol 5')
 # set up the two groups (in this case, I have 6 wt replicates followed by 5 mut replicates)
 groups <- factor(c(1,1,2,2,2,2,2))
 # condition vector - tells DESeq what contrast to do (I called wt = untreated and wt = treated here)
-condition <- c(rep("TA",2),rep("Sol",5))
+condition <- c(rep("TA",2), rep("Sol",5))
 adjp <- 0.05
 drop_low <- TRUE
 # changing between quasi-likelihood test (TRUE) to likelihood F test (FALSE)
 qlt_test = FALSE
 
-deres <- DESeq2_DE(data_file, col_names, condition, adjp, drop_low)
-deedg_TASOLcontrol <- edgeR_DE(data_file, groups, adjp, drop_low, qlt_test)
+deres_SolvsTA_control <- DESeq2_DE(data_file, col_names, condition, adjp, drop_low)
+deedg_SOLvsTA_control <- edgeR_DE(data_file, groups, adjp, drop_low, qlt_test)
 
 #----------------------------------------------------------------------------------------------------------------------------------
 

@@ -38,6 +38,6 @@ if (max_fc > abs(min_fc)){
 # make the plot
 pdf(file_name, width = 20, height = 20)
 pl <- GOChord(goplot_data$chord,space=0.02,gene.order='logFC',gene.space=0.25,lfc.col=c('red','white','blue'),lfc.min=fc_min,lfc.max=fc_max,border.size=0, process.label = 10)
-pl <- pl + coord_fixed() + theme(legend.position = "none")
+pl <- pl + coord_fixed() + theme(legend.position = "bottom")
 print(pl)
 dev.off()

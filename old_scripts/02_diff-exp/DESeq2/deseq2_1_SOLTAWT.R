@@ -185,7 +185,7 @@ res.var$contrib        # Contributions to the PCs
 res.var$cos2           # Quality of representation 
 
 # Identifying sample groupings
-grp <- c("Soleus", "Soleus", "Soleus", "Soleus", "Soleus", "Soleus", "Tibialis", "Tibialis")
+grp <- c("Tibialis", "Tibialis", "Soleus", "Soleus", "Soleus", "Soleus", "Soleus")
 
 #Graph of variables. 
 # Positive correlated variables point to the same side of the plot. 
@@ -208,8 +208,7 @@ fviz_pca_biplot(OGPCAN, repel = FALSE, arrowsize =2,
 # PCA plot replicates set up
 OGPCAN_matrix <- as.data.frame(OGPCAN$rotation)
 #print(OGPCAN_matrix)
-OGPCAN_matrix$Condition <- c("Soleus","Soleus","Soleus","Soleus","Soleus","Soleus",
-                             "Tibialis", "Tibialis")
+OGPCAN_matrix$Condition <- c("Tibialis", "Tibialis", "Soleus","Soleus","Soleus","Soleus","Soleus")
 #print(OGPCAN_matrix)
 
 # Plot PCA

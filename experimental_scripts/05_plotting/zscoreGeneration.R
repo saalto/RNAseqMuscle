@@ -1,5 +1,5 @@
 # --- Heat map of Soleus data set renamed and without Sample C6 due to low z-scores---
-%AllSoleusWO6_ReadCounts2 <- AllSoleusWO6_ReadCounts[row.names(AllSoleusWO6_ReadCounts) %in% MetabolicGenesFromWhole3,]
+AllSoleusWO6_ReadCounts2 <- AllSoleusWO6_ReadCounts[row.names(AllSoleusWO6_ReadCounts) %in% MetabolicGenesFromWhole3,]
 df1 <- AllSoleusWO6_DEMet_ReadCounts[apply(AllSoleusWO6_DEMet_ReadCounts,1,prod)>0,]
 df2 <- log(df1)
 AllSoleusWO6_zscore <- apply(df2,1,scale)

@@ -3,10 +3,10 @@
 require(readxl)
 
 # --- Change the CODE here ---
-genelist = read.csv("C:/Users/sarah/Documents/RNASeq_analysis/2019_04_17/genelist.csv")
-setwd("C:/Users/sarah/Documents/RNASeq_analysis/2019_04_17/MGI GO/")
+genelist = read.csv("C:/Users/sarah/Documents/RNASeq_analysis/2019_06_27/genelist.csv")
+setwd("C:/Users/sarah/Documents/RNASeq_analysis/2019_06_27/MGI_GO/")
 files = list.files(".")
-outputFile = "C:/Users/sarah/Downloads/AnnotatedGeneList4.csv"
+outputFile = "C:/Users/sarah/Documents/RNASeq_analysis/2019_06_27/AnnotatedGeneList.csv"
 
 # ---Leave this code (unless DeBugging)---
 # --- Subsections of the three major GO categories ---

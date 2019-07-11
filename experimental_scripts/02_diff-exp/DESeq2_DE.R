@@ -16,7 +16,7 @@ DESeq2_DE <- function(data_file,col_names,condition,adj_p=0.05,drop_low=TRUE){
 
   # separate into gene names and just counts
   genes <- cts[,c(1)]
-  cts <- cts[,c(2:12)]
+  cts <- cts[,c(2:8)]
 
   # change row/col names (function will fail here if Excel was used to open and save the data file)
   rownames(cts) <- genes
